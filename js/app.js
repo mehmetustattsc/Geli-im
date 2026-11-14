@@ -9,7 +9,7 @@
   var GUNK = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
   var AY = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   var CAT = { is: "İş", kariyer: "Kariyer", gelir: "Gelir", hobi: "Hobi", aile: "Aile" };
-  var PASS = 0.7;
+  var PASS = 0.8;
 
   /* ---------- ikonlar ---------- */
   var IC = {
@@ -54,6 +54,10 @@
     car: '<path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/>',
     news: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h10M7 16h10"/>',
     refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
+    head: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/>',
+    pause: '<path d="M8 5v14M16 5v14"/>',
+    rew: '<path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v5h5"/><path d="M10 10v5M13 10h2v5h-2"/>',
+    fwd: '<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/><path d="M9 10h2v2H9v3h2M14 10v5"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     ext: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'
   };
@@ -75,7 +79,8 @@
       start: TODAY, target: "2028-11-01",
       goal: "Kariyer adımı: Prozess- / Datenanalyst gibi bir rol, ≥4.000 € brüt, ≤30 km ya da ≥%50 remote.",
       plan: { 1: "de", 2: "sql", 3: "mkt", 4: "pbi", 5: "car", 6: "weak", 0: "review" },
-      sessions: [], best: {}, tasks: {}, wrong: [], ideas: [], read: {},
+      sessions: [], best: {}, tasks: {}, srs: {}, ideas: [], read: {}, listen: {},
+      pod: { pos: {}, done: {}, last: null, rate: 1, goal: 150 },
       projects: JSON.parse(JSON.stringify(window.DEFAULT_PROJECTS)),
       ms: {}, notes: "", pend: { km: 50, days: 4, rate: 0.25, mins: 45 }
     };
@@ -84,10 +89,14 @@
     try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
     var d = defaults();
     if (!S) S = d; else Object.keys(d).forEach(function (k) { if (S[k] == null) S[k] = d[k]; });
+    if (S.wrong) { S.wrong.forEach(function (id) { S.srs[id] = { b: 0, due: TODAY }; }); delete S.wrong; }
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Kaydedilemedi: tarayıcı depolaması kapalı olabilir"); } }
 
   /* ---------- müfredat yardımcıları ---------- */
+  Object.keys(window.WRITE_Q || {}).forEach(function (lid) {
+    TR.forEach(function (t) { CUR[t.id].forEach(function (m) { m.lessons.forEach(function (l) { if (l.id === lid && !l.quiz.some(function (q) { return q.k === "w"; })) { var w = window.WRITE_Q[lid]; w.k = "w"; l.quiz.push(w); } }); }); });
+  });
   var LES = {};
   TR.forEach(function (t) { CUR[t.id].forEach(function (m, mi) { m.lessons.forEach(function (l, li) { LES[l.id] = { l: l, m: m, mi: mi, li: li, tr: t.id }; }); }); });
   function done(lid) { return (S.best[lid] || 0) >= PASS; }
@@ -196,14 +205,14 @@
   var view = "today", calMonth = null, newsFilter = "all", NEWS = null;
   function go(v) { view = v; render(); window.scrollTo(0, 0); }
   function render() {
-    var html = '<header class="top"><div><small>' + GUN[new Date().getDay()] + ", " + fmt(TODAY) + "</small><h1>" + ({ today: "Bugün", road: "Yol haritası", cal: "Takvim", news: "Güncel", proj: "Projeler", me: "Ben" })[view] + '</h1></div><button class="me" data-go="me" aria-label="Ben">' + ic("user") + "</button></header><main>";
-    html += ({ today: vToday, road: vRoad, cal: vCal, news: vNews, proj: vProj, me: vMe })[view]();
+    var html = '<header class="top"><div><small>' + GUN[new Date().getDay()] + ", " + fmt(TODAY) + "</small><h1>" + ({ today: "Bugün", road: "Yol haritası", cal: "Takvim", news: "Güncel", listen: "Dinle", proj: "Projeler", me: "Ben" })[view] + '</h1></div><button class="me" data-go="me" aria-label="Ben">' + ic("user") + "</button></header><main>";
+    html += ({ today: vToday, road: vRoad, cal: vCal, news: vNews, listen: vListen, proj: vProj, me: vMe })[view]();
     html += "</main>" + nav();
     $app.innerHTML = html;
     if (view === "news" && !NEWS) loadNews(render);
   }
   function nav() {
-    var items = [["today", "home", "Bugün"], ["road", "map", "Yol"], ["cal", "cal", "Takvim"], ["news", "news", "Güncel"], ["proj", "list", "Projeler"]];
+    var items = [["today", "home", "Bugün"], ["road", "map", "Yol"], ["cal", "cal", "Takvim"], ["listen", "head", "Dinle"], ["news", "news", "Güncel"], ["proj", "list", "Projeler"]];
     return '<nav class="tabs">' + items.map(function (x) { return '<button data-go="' + x[0] + '" class="' + (view === x[0] ? "on" : "") + '">' + ic(x[1]) + "<span>" + x[2] + "</span></button>"; }).join("") + "</nav>";
   }
 
@@ -238,6 +247,7 @@
       return '<button class="rg" data-track="' + t.id + '">' + ring(s.pct, t.color, 62, s.done + "/" + s.avail) + "<span>" + esc(t.short) + "</span></button>";
     }).join("") + "</div>";
 
+    h += '<button class="go-btn sm" data-go="listen">' + ic("head", "big") + "<span><small>Yolda mısın?</small><b>Almanca dinle</b><em>Bu hafta " + weekListen() + " / " + (S.pod.goal || 150) + " dk</em></span>" + ic("arrow") + "</button>";
     var nt = tp.tid || (f && f.t.id);
     h += newsTeaser(nt);
     h += '<button class="idea-btn" data-act="idea">' + ic("bulb") + "<span><b>Yeni bir şey mi istiyorsun?</b><small>Eklemeden önce hedefine uyup uymadığına birlikte bakalım</small></span>" + ic("arrow") + "</button>";
@@ -256,12 +266,12 @@
       '<button class="btn" data-lesson="' + n.lesson.id + '">' + ic("play") + "Başla</button></section>";
   }
   function reviewCard() {
-    var n = S.wrong.length;
+    var n = dueList().length;
     if (!n) {
       var f = focusTrack();
-      return '<section class="card"><h3>Tekrar günü</h3><p>Tekrar havuzun boş, yanlışın yok. İstersen haftanın dersini öne alabilirsin.</p>' + (f ? '<button class="btn ghost" data-lesson="' + f.n.lesson.id + '">' + esc(f.t.short) + ": " + esc(f.n.lesson.title) + "</button>" : "") + "</section>";
+      return '<section class="card"><h3>Tekrar günü</h3><p>Bugün tekrar zamanı gelen soru yok. İstersen haftanın dersini öne alabilirsin.</p>' + (f ? '<button class="btn ghost" data-lesson="' + f.n.lesson.id + '">' + esc(f.t.short) + ": " + esc(f.n.lesson.title) + "</button>" : "") + "</section>";
     }
-    return '<section class="card lesson" style="--c:#4b5563"><span class="tag">' + ic("refresh") + "Tekrar</span><h3>Yanlış yaptığın " + Math.min(n, 8) + " soru</h3><p>Doğru cevapladığın soru havuzdan çıkar. Havuzda " + n + ' soru var.</p><button class="btn" data-act="review">' + ic("play") + "Başla</button></section>";
+    return '<section class="card lesson" style="--c:#4b5563"><span class="tag">' + ic("refresh") + "Tekrar</span><h3>Tekrar zamanı gelen " + Math.min(n, 12) + " soru</h3><p>Her soru doğru cevapladıkça daha seyrek gelir: 1, 3, 7, 21, 60 gün sonra. Bugün sırası gelen " + n + ' soru var.</p><button class="btn" data-act="review">' + ic("play") + "Başla</button></section>";
   }
   function weekStrip() {
     var d = parse(TODAY), dow = (d.getDay() + 6) % 7, mon = addDays(TODAY, -dow), out = '<div class="week">';
@@ -322,9 +332,9 @@
       else if (ds >= TODAY) st = "plan";
       if (cnt[st] != null) cnt[st]++;
       var col = ss.length ? TRK[ss[0].tr] && TRK[ss[0].tr].color : TRK[p] ? TRK[p].color : "#8a8f98";
-      h += '<button class="cd ' + st + (ds === TODAY ? " now" : "") + (ds === S.target ? " tgt" : "") + '" data-day="' + ds + '" style="--c:' + (col || "#8a8f98") + '"><span>' + d + "</span>" + (msMap[ds] || ds === S.target ? ic("flag", "mf") : "") + "</button>";
+      h += '<button class="cd ' + st + (ds === TODAY ? " now" : "") + (ds === S.target ? " tgt" : "") + '" data-day="' + ds + '" style="--c:' + (col || "#8a8f98") + '"><span>' + d + "</span>" + (msMap[ds] || ds === S.target ? ic("flag", "mf") : "") + (listenMin(ds) >= 5 ? ic("head", "lh") : "") + "</button>";
     }
-    h += '</div><div class="legend"><span><i class="done"></i>Tamam</span><span><i class="part"></i>Yarım</span><span><i class="miss"></i>Kaçtı</span><span><i class="plan"></i>Plan</span><span>' + ic("flag") + "Hedef</span></div></section>";
+    h += '</div><div class="legend"><span><i class="done"></i>Tamam</span><span><i class="part"></i>Yarım</span><span><i class="miss"></i>Kaçtı</span><span><i class="plan"></i>Plan</span><span>' + ic("flag") + "Hedef</span><span>" + ic("head") + "Dinleme</span></div></section>";
     h += '<section class="card"><h3>' + AY[m] + " özeti</h3>" + '<div class="v-bars" style="--c:#1f8a83">' +
       [["Tamamlanan gün", cnt.done, "#2e9e6a"], ["Yarım kalan", cnt.part, "#e3a018"], ["Kaçırılan", cnt.miss, "#d1495b"]].map(function (x) {
         return '<div class="br"><span class="bl">' + x[0] + '</span><span class="bt"><i style="width:' + Math.min(100, x[1] / Math.max(1, nd) * 300) + "%;background:" + x[2] + '"></i></span><span class="bv">' + x[1] + "</span></div>";
@@ -338,7 +348,8 @@
     var h = "<h4>" + fmt(ds) + " · plan: " + esc(planLabel(p)) + "</h4>";
     ms.forEach(function (x) { h += '<p class="msd">' + ic("flag") + esc(x.title) + "</p>"; });
     if (ds === S.target) h += '<p class="msd">' + ic("flag") + "Hedef tarih</p>";
-    if (!ss.length) h += "<p>Bu gün kayıt yok.</p>";
+    if (listenMin(ds)) h += '<p class="sd">' + ic("head") + " " + listenMin(ds) + " dk dinleme</p>";
+    if (!ss.length && !listenMin(ds)) h += "<p>Bu gün kayıt yok.</p>";
     ss.forEach(function (s) { var L = LES[s.lid]; h += '<p class="sd"><span style="color:' + (TRK[s.tr] ? TRK[s.tr].color : "#555") + '">●</span> ' + esc(L ? L.l.title : "Tekrar") + " · " + s.sc + "/" + s.tot + (s.pass ? " ✓" : " (tekrar gerekli)") + "</p>"; });
     var el = document.getElementById("daydet"); if (el) el.innerHTML = h;
   }
@@ -414,62 +425,186 @@
     return h;
   }
 
+  /* ---------- aralıklı tekrar ---------- */
+  var INT = [1, 3, 7, 21, 60];
+  function qById(id) { var p = id.split("#"), L = LES[p[0]]; return L ? { q: L.l.quiz[+p[1]], id: id, tr: L.tr } : null; }
+  function dueList(exclude) {
+    return Object.keys(S.srs).filter(function (id) { return S.srs[id].due <= TODAY && (!exclude || id.indexOf(exclude + "#") !== 0); })
+      .sort(function (a, b) { return S.srs[a].due < S.srs[b].due ? -1 : 1; }).map(qById).filter(Boolean);
+  }
+  function srsUpdate(id, pts) {
+    var r = S.srs[id] || { b: 0, due: TODAY };
+    if (pts >= 1) { r.b = Math.min(r.b + 1, INT.length - 1); r.due = addDays(TODAY, INT[r.b]); }
+    else if (pts >= 0.5) { r.due = addDays(TODAY, 1); }
+    else { r.b = 0; r.due = addDays(TODAY, 1); }
+    S.srs[id] = r;
+  }
+
   /* ---------- ders oynatıcı ---------- */
   var P = null;
   function openLesson(lid) {
     var L = LES[lid]; if (!L) return;
-    P = { kind: "lesson", lid: lid, tr: L.tr, l: L.l, i: 0, phase: "slides", qi: 0, score: 0, answers: [], t0: Date.now(), qs: L.l.quiz.map(function (q, k) { return { q: q, id: lid + "#" + k }; }) };
+    var warm = dueList(lid).slice(0, 3);
+    P = { kind: "lesson", lid: lid, tr: L.tr, l: L.l, phase: warm.length ? "warm" : "slides", warm: warm, wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(),
+      qs: L.l.quiz.map(function (q, k) { return { q: q, id: lid + "#" + k }; }) };
     drawPlayer();
   }
   function openReview() {
-    var pool = S.wrong.slice(0, 8).map(function (id) { var p = id.split("#"), L = LES[p[0]]; return L ? { q: L.l.quiz[+p[1]], id: id, tr: L.tr } : null; }).filter(Boolean);
+    var pool = dueList().slice(0, 12);
     if (!pool.length) return;
-    P = { kind: "review", lid: null, tr: "review", l: { title: "Tekrar", slides: [] }, i: 0, phase: "quiz", qi: 0, score: 0, answers: [], t0: Date.now(), qs: pool };
+    P = { kind: "review", lid: null, tr: "review", l: { title: "Tekrar", slides: [] }, phase: "quiz", warm: [], wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(), qs: pool };
     drawPlayer();
+  }
+  function curQ() { return P.phase === "warm" ? { it: P.warm[P.wi], key: "w" + P.wi } : { it: P.qs[P.qi], key: "q" + P.qi }; }
+  function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  function renderQ(it, key, label) {
+    var Q = it.q, A = P.ans[key], h = '<div class="slide quiz"><span class="tag">' + ic(label === "Isınma" ? "refresh" : "star") + label + (it.tr && TRK[it.tr] && label !== "Test" ? " · " + esc(TRK[it.tr].short) : "") + "</span><h2>" + esc(Q.q) + "</h2>";
+    if (Q.k === "w") {
+      h += '<textarea id="wans" class="wans' + (Q.code ? " mono" : "") + '" rows="' + (Q.code ? 5 : 3) + '" placeholder="Cevabını yaz…"' + (A ? " disabled" : "") + ' autocapitalize="off" autocorrect="off" spellcheck="false">' + esc(A ? A.text : "") + "</textarea>";
+      if (A) {
+        var t = norm(A.text), hits = Q.keys.map(function (k) { return [k, t.indexOf(norm(k)) >= 0]; }), ok = hits.filter(function (x) { return x[1]; }).length / hits.length;
+        var sug = ok >= 0.8 ? 1 : ok >= 0.4 ? 0.5 : 0;
+        h += '<div class="v-out"><span>Örnek cevap</span><pre class="v-code">' + (Q.code ? hl(Q.model) : esc(Q.model)) + '</pre></div><div class="keys">' + hits.map(function (x) { return '<span class="' + (x[1] ? "hit" : "miss") + '">' + ic(x[1] ? "check" : "x") + esc(x[0]) + "</span>"; }).join("") + "</div>";
+        h += '<p class="muted small">Örnekle karşılaştır ve kendini dürüstçe puanla. Yazımın farklı olması sorun değil; önemli olan anlamın ve yapının doğru olması.</p>';
+        h += '<div class="rate">' + [[1, "Doğru"], [0.5, "Kısmen"], [0, "Yanlış"]].map(function (r) { return '<button data-rate="' + r[0] + '" class="' + (A.pts === r[0] ? "on " : "") + (A.pts == null && sug === r[0] ? "sug" : "") + '">' + r[1] + "</button>"; }).join("") + "</div>";
+      }
+    } else {
+      h += '<div class="opts">' + Q.o.map(function (o, k) {
+        var c = !A ? "" : k === Q.a ? "right" : k === A.v ? "wrong" : "dim";
+        return '<button data-ans="' + k + '" class="' + c + '"' + (A ? " disabled" : "") + "><span>" + String.fromCharCode(65 + k) + "</span>" + esc(o) + "</button>";
+      }).join("") + "</div>";
+      if (A) h += '<div class="expl ' + (A.pts ? "ok" : "no") + '"><b>' + (A.pts ? "Doğru." : "Doğru cevap: " + String.fromCharCode(65 + Q.a)) + "</b> " + esc(Q.e || "") + "</div>";
+    }
+    return h + "</div>";
   }
   function drawPlayer() {
     var col = TRK[P.tr] ? TRK[P.tr].color : "#4b5563", el = document.getElementById("player");
     if (!el) { el = document.createElement("div"); el.id = "player"; document.body.appendChild(el); }
     el.style.setProperty("--c", col);
     document.body.classList.add("noscroll");
-    var nS = P.l.slides.length, nQ = P.qs.length, pos = P.phase === "slides" ? P.i : P.phase === "quiz" ? nS + P.qi : nS + nQ, prog = pos / (nS + nQ);
-    var h = '<div class="pl-top" style="--c:' + col + '"><button data-act="close" aria-label="Kapat">' + ic("x") + '</button><div class="pbar"><i style="width:' + prog * 100 + '%"></i></div><small>' + (P.phase === "slides" ? (P.i + 1) + "/" + nS : P.phase === "quiz" ? "Soru " + (P.qi + 1) + "/" + nQ : "Sonuç") + "</small></div>";
-    h += '<div class="pl-body" style="--c:' + col + '">';
+    var nW = P.warm.length, nS = P.l.slides.length, nQ = P.qs.length, tot = nW + nS + nQ;
+    var pos = P.phase === "warm" ? P.wi : P.phase === "slides" ? nW + P.i : P.phase === "quiz" ? nW + nS + P.qi : tot;
+    var lab = P.phase === "warm" ? "Isınma " + (P.wi + 1) + "/" + nW : P.phase === "slides" ? (P.i + 1) + "/" + nS : P.phase === "quiz" ? "Soru " + (P.qi + 1) + "/" + nQ : "Sonuç";
+    var h = '<div class="pl-top"><button data-act="close" aria-label="Kapat">' + ic("x") + '</button><div class="pbar"><i style="width:' + pos / tot * 100 + '%"></i></div><small>' + lab + '</small></div><div class="pl-body">';
     if (P.phase === "slides") {
       var s = P.l.slides[P.i];
       h += '<div class="slide"><span class="tag">' + esc(P.l.title) + "</span><h2>" + esc(s.h) + "</h2>" + (s.p ? '<p class="sp">' + esc(s.p) + "</p>" : "") + '<div class="vis">' + slideVisual(s, col) + "</div></div>";
       h += '</div><div class="pl-foot"><button class="btn ghost" data-act="prev"' + (P.i ? "" : " disabled") + ">" + ic("back") + 'Geri</button><button class="btn" data-act="next">' + (P.i === nS - 1 ? "Teste geç" : "İleri") + ic("arrow") + "</button></div>";
-    } else if (P.phase === "quiz") {
-      var Q = P.qs[P.qi].q, ans = P.answers[P.qi];
-      h += '<div class="slide quiz"><span class="tag">' + ic("star") + "Test</span><h2>" + esc(Q.q) + '</h2><div class="opts">' + Q.o.map(function (o, k) {
-        var c = ans == null ? "" : k === Q.a ? "right" : k === ans ? "wrong" : "dim";
-        return '<button data-ans="' + k + '" class="' + c + '"' + (ans != null ? " disabled" : "") + "><span>" + String.fromCharCode(65 + k) + "</span>" + esc(o) + "</button>";
-      }).join("") + "</div>" + (ans != null ? '<div class="expl ' + (ans === Q.a ? "ok" : "no") + '"><b>' + (ans === Q.a ? "Doğru." : "Doğru cevap: " + String.fromCharCode(65 + Q.a)) + "</b> " + esc(Q.e || "") + "</div>" : "") + "</div>";
-      h += '</div><div class="pl-foot">' + (ans != null ? '<button class="btn wide" data-act="nextq">' + (P.qi === nQ - 1 ? "Sonucu gör" : "Sonraki soru") + ic("arrow") + "</button>" : '<span class="muted small center wide">Bir cevap seç</span>') + "</div>";
+    } else if (P.phase === "warm" || P.phase === "quiz") {
+      var c = curQ(), A = P.ans[c.key], isW = c.it.q.k === "w";
+      if (P.phase === "warm" && P.wi === 0 && !A) h += '<p class="warm-note">' + ic("refresh") + "Derse başlamadan önce geçmiş derslerden " + nW + " soru. Hatırlamaya çalışmak, unutmayı en çok yavaşlatan şeydir.</p>";
+      h += renderQ(c.it, c.key, P.phase === "warm" ? "Isınma" : P.kind === "review" ? "Tekrar" : "Test") + '</div><div class="pl-foot">';
+      if (isW && !A) h += '<button class="btn wide" data-act="wcheck">Kontrol et</button>';
+      else if (A && A.pts != null) {
+        var last = P.phase === "warm" ? P.wi === nW - 1 : P.qi === nQ - 1;
+        h += '<button class="btn wide" data-act="nextq">' + (last ? (P.phase === "warm" ? "Derse geç" : "Sonucu gör") : "Sonraki soru") + ic("arrow") + "</button>";
+      } else h += '<span class="muted small center wide">' + (isW ? "Kendini puanla" : "Bir cevap seç") + "</span>";
+      h += "</div>";
     } else {
-      var pct = P.score / nQ, pass = pct >= PASS, mins = Math.max(1, Math.round((Date.now() - P.t0) / 60000));
-      h += '<div class="slide result">' + ring(pct, pass ? "#2e9e6a" : "#e3a018", 140, Math.round(pct * 100) + "%") + "<h2>" + (P.kind === "review" ? "Tekrar tamam" : pass ? "Ders tamamlandı" : "Biraz daha tekrar") + "</h2><p>" + P.score + "/" + nQ + " doğru · " + mins + " dk" + (P.kind === "lesson" && !pass ? ". Geçmek için %70 gerekiyor; yanlışların Pazar tekrarına eklendi." : "") + "</p>";
-      if (P.l.task) h += '<div class="task"><span class="tag">' + ic("flag") + 'Bugünkü görev</span><p>' + esc(P.l.task) + '</p><label class="chk"><input type="checkbox" id="taskdone"' + (S.tasks[P.lid] ? " checked" : "") + "><span>Görevi yaptım (yarın da işaretleyebilirsin)</span></label></div>";
+      var sc = lessonScore(), pct = sc / nQ, pass = pct >= PASS, mins = Math.max(1, Math.round((Date.now() - P.t0) / 60000));
+      h += '<div class="slide result">' + ring(pct, pass ? "#2e9e6a" : "#e3a018", 140, Math.round(pct * 100) + "%") + "<h2>" + (P.kind === "review" ? "Tekrar tamam" : pass ? "Ders tamamlandı" : "Biraz daha tekrar") + "</h2><p>" + (Math.round(sc * 10) / 10) + "/" + nQ + " puan · " + mins + " dk" + (P.kind === "lesson" && !pass ? ". Geçmek için %80 gerekiyor. Dersi istediğin zaman tekrar açabilirsin; yanlış soruların yarın tekrar karşına çıkacak." : "") + "</p>";
+      if (P.warm.length) { var wsc = P.warm.reduce(function (a, x, k) { return a + ((P.ans["w" + k] || {}).pts || 0); }, 0); h += '<p class="muted small">Isınma: ' + wsc + "/" + P.warm.length + "</p>"; }
+      if (P.l.task) h += '<div class="task"><span class="tag">' + ic("flag") + "Bugünkü görev</span><p>" + esc(P.l.task) + '</p><label class="chk"><input type="checkbox" id="taskdone"' + (S.tasks[P.lid] ? " checked" : "") + "><span>Görevi yaptım (yarın da işaretleyebilirsin)</span></label></div>";
       h += '</div></div><div class="pl-foot"><button class="btn wide" data-act="finish">Kaydet ve kapat</button></div>';
     }
     el.innerHTML = h;
     el.querySelector(".pl-body").scrollTop = 0;
   }
+  function lessonScore() { return P.qs.reduce(function (a, x, k) { return a + ((P.ans["q" + k] || {}).pts || 0); }, 0); }
   function finishPlayer() {
-    var nQ = P.qs.length, pct = P.score / nQ, mins = Math.max(1, Math.round((Date.now() - P.t0) / 60000));
+    var nQ = P.qs.length, pct = lessonScore() / nQ, mins = Math.max(1, Math.round((Date.now() - P.t0) / 60000));
     var tb = document.getElementById("taskdone");
     if (tb && P.lid) S.tasks[P.lid] = tb.checked;
-    P.qs.forEach(function (x, k) {
-      var ok = P.answers[k] === x.q.a, ix = S.wrong.indexOf(x.id);
-      if (ok && ix >= 0) S.wrong.splice(ix, 1);
-      if (!ok && ix < 0) S.wrong.push(x.id);
-    });
+    P.warm.forEach(function (x, k) { var a = P.ans["w" + k]; if (a && a.pts != null) srsUpdate(x.id, a.pts); });
+    P.qs.forEach(function (x, k) { var a = P.ans["q" + k]; if (a && a.pts != null) srsUpdate(x.id, a.pts); });
     if (P.kind === "lesson") S.best[P.lid] = Math.max(S.best[P.lid] || 0, pct);
-    S.sessions.push({ date: TODAY, lid: P.lid, tr: P.kind === "lesson" ? P.tr : "review", sc: P.score, tot: nQ, min: mins, pass: P.kind === "review" || pct >= PASS });
+    S.sessions.push({ date: TODAY, lid: P.lid, tr: P.kind === "lesson" ? P.tr : "review", sc: Math.round(lessonScore() * 10) / 10, tot: nQ, min: mins, pass: P.kind === "review" || pct >= PASS });
     var wasReview = P.kind === "review";
-    save(); closePlayer(); toast(wasReview ? "Tekrar kaydedildi" : pct >= PASS ? "Ders tamamlandı" : "Kaydedildi; Pazar tekrar edeceğiz");
+    save(); closePlayer(); toast(wasReview ? "Tekrar kaydedildi" : pct >= PASS ? "Ders tamamlandı" : "Kaydedildi; yarın yanlışlar tekrar gelecek");
   }
   function closePlayer() { var el = document.getElementById("player"); if (el) el.remove(); document.body.classList.remove("noscroll"); P = null; render(); }
+
+  /* ---------- podcast oynatıcı ---------- */
+  var PODS = null, AU = null, lastT = 0, saveT = 0, curEp = null;
+  var PODCAT = [["all", "Hepsi"], ["lern", "Almanca öğren"], ["nat", "Doğal Almanca"], ["ki", "Yapay zekâ"], ["is", "İş ve kariyer"]];
+  function loadPods(cb) {
+    fetch("data/podcasts.json?" + TODAY, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { PODS = j || { eps: [] }; cb && cb(); }).catch(function () { PODS = { eps: [], offline: true }; cb && cb(); });
+  }
+  function epById(id) { return PODS && PODS.eps.filter(function (e) { return e.id === id; })[0]; }
+  function listenMin(d) { return Math.round((S.listen[d] || 0) / 60); }
+  function weekListen() { var s = 0, mon = addDays(TODAY, -((parse(TODAY).getDay() + 6) % 7)); for (var i = 0; i < 7; i++) s += S.listen[addDays(mon, i)] || 0; return Math.round(s / 60); }
+  function fmtDur(s) { s = Math.round(s || 0); var m = Math.floor(s / 60); return m >= 60 ? Math.floor(m / 60) + " sa " + (m % 60) + " dk" : m + " dk"; }
+  function ensureAudio() {
+    if (AU) return AU;
+    AU = new Audio(); AU.preload = "metadata";
+    AU.addEventListener("timeupdate", function () {
+      if (!curEp) return;
+      var t = AU.currentTime, dt = t - lastT; lastT = t;
+      if (!AU.paused && dt > 0 && dt < 3) S.listen[TODAY] = (S.listen[TODAY] || 0) + dt / (AU.playbackRate || 1);
+      S.pod.pos[curEp.id] = t;
+      if (AU.duration && t / AU.duration > 0.92) S.pod.done[curEp.id] = TODAY;
+      if (Date.now() - saveT > 5000) { saveT = Date.now(); save(); drawMini(); }
+    });
+    AU.addEventListener("seeked", function () { lastT = AU.currentTime; });
+    ["play", "pause", "ended"].forEach(function (ev) { AU.addEventListener(ev, function () { save(); drawMini(); if (view === "listen") render(); }); });
+    AU.addEventListener("error", function () { toast("Bölüm açılamadı; internet bağlantını kontrol et"); });
+    if ("mediaSession" in navigator) {
+      try {
+        navigator.mediaSession.setActionHandler("play", function () { AU.play(); });
+        navigator.mediaSession.setActionHandler("pause", function () { AU.pause(); });
+        navigator.mediaSession.setActionHandler("seekbackward", function () { AU.currentTime = Math.max(0, AU.currentTime - 15); });
+        navigator.mediaSession.setActionHandler("seekforward", function () { AU.currentTime += 30; });
+      } catch (e) {}
+    }
+    return AU;
+  }
+  function playEp(id) {
+    var e = epById(id); if (!e) return;
+    ensureAudio();
+    if (curEp && curEp.id === id) { AU.paused ? AU.play() : AU.pause(); return; }
+    curEp = e; S.pod.last = id; AU.src = e.url; AU.playbackRate = S.pod.rate || 1;
+    var start = S.pod.pos[id] || 0;
+    AU.addEventListener("loadedmetadata", function f() { AU.removeEventListener("loadedmetadata", f); if (start && (!AU.duration || start < AU.duration - 5)) AU.currentTime = start; lastT = AU.currentTime; AU.playbackRate = S.pod.rate || 1; });
+    lastT = start;
+    AU.play().catch(function () { toast("Oynatmak için tekrar dokun"); });
+    if ("mediaSession" in navigator && window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({ title: e.t, artist: e.show, artwork: e.img ? [{ src: e.img, sizes: "600x600" }] : [] });
+    save(); drawMini(); if (view === "listen") render();
+  }
+  function nextEp() {
+    if (!PODS) return null;
+    if (S.pod.last && !S.pod.done[S.pod.last] && epById(S.pod.last)) return epById(S.pod.last);
+    return PODS.eps.filter(function (e) { return !S.pod.done[e.id] && (podCat === "all" || e.cat === podCat); })[0] || null;
+  }
+  var podCat = "all";
+  function vListen() {
+    if (!PODS) { loadPods(render); return '<p class="muted center">Yükleniyor…</p>'; }
+    var wk = weekListen(), goal = S.pod.goal || 150, nx = nextEp();
+    var h = '<section class="hero listen"><div class="hero-l"><span class="lbl">Bu hafta</span><b class="cnt">' + wk + '</b><span class="lbl">dk</span></div><div class="hero-r"><p>Yolda Almanca dinlemek, en çok saat biriktireceğin yer. Hedef: haftada ' + goal + ' dakika.</p><div class="tl"><i style="width:' + Math.min(100, wk / goal * 100) + '%"></i></div><small>' + Math.min(100, Math.round(wk / goal * 100)) + "% tamam</small></div></section>";
+    if (nx) h += '<button class="go-btn" data-ep="' + esc(nx.id) + '">' + ic(curEp && curEp.id === nx.id && AU && !AU.paused ? "pause" : "play", "big") + "<span><small>" + (S.pod.pos[nx.id] ? "Kaldığın yerden devam" : "Yola çıkıyorum") + "</small><b>" + esc(nx.t) + "</b><em>" + esc(nx.show) + "</em></span></button>";
+    var mon = addDays(TODAY, -((parse(TODAY).getDay() + 6) % 7)), mx = 1, wd = [];
+    for (var i = 0; i < 7; i++) { var ds = addDays(mon, i), m = listenMin(ds); wd.push([GUNK[parse(ds).getDay()], m, ds]); mx = Math.max(mx, m); }
+    h += '<section class="card"><h3>Günlük dinleme</h3><div class="lbars">' + wd.map(function (x) { return '<div class="' + (x[2] === TODAY ? "now" : "") + '"><em>' + (x[1] || "") + '</em><i style="height:' + Math.max(3, x[1] / mx * 100) + '%"></i><small>' + x[0] + "</small></div>"; }).join("") + "</div></section>";
+    h += '<div class="filters">' + PODCAT.map(function (c) { return '<button data-pc="' + c[0] + '" class="' + (podCat === c[0] ? "on" : "") + '">' + c[1] + "</button>"; }).join("") + "</div>";
+    var eps = PODS.eps.filter(function (e) { return podCat === "all" || e.cat === podCat; });
+    if (!eps.length) h += '<section class="card"><p>' + (PODS.offline ? "Çevrimdışısın." : "Bölüm listesi henüz oluşturulmadı. İlk otomatik güncellemeden sonra burada olacak.") + "</p></section>";
+    eps.forEach(function (e) {
+      var pos = S.pod.pos[e.id] || 0, pr = e.dur ? Math.min(1, pos / e.dur) : 0, on = curEp && curEp.id === e.id && AU && !AU.paused;
+      h += '<div class="ep ' + (S.pod.done[e.id] ? "dn" : "") + '">' + (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="noimg">' + ic("mic") + "</span>") +
+        '<div class="ei"><small>' + esc(e.show) + (e.d ? " · " + esc(e.d) : "") + "</small><b>" + esc(e.t) + "</b><span>" + (e.dur ? fmtDur(e.dur) : "") + (S.pod.done[e.id] ? " · dinlendi" : pos > 5 ? " · " + fmtDur(e.dur - pos) + " kaldı" : "") + "</span>" + (pr ? '<div class="epbar"><i style="width:' + pr * 100 + '%"></i></div>' : "") + "</div>" +
+        '<button class="pp" data-ep="' + esc(e.id) + '" aria-label="Oynat">' + ic(on ? "pause" : "play") + "</button></div>";
+    });
+    h += '<p class="muted small">' + (PODS.updated ? "Liste her sabah yenilenir · son: " + esc(PODS.updated) : "") + "</p>";
+    return h;
+  }
+  function drawMini() {
+    var el = document.getElementById("mini");
+    document.body.classList.toggle("hasmini", !!curEp);
+    if (!curEp) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement("div"); el.id = "mini"; document.body.appendChild(el); }
+    var pr = AU && AU.duration ? AU.currentTime / AU.duration : 0, rate = S.pod.rate || 1;
+    el.innerHTML = '<div class="mbar"><i style="width:' + pr * 100 + '%"></i></div><div class="mrow"><button data-act="aback" aria-label="15 sn geri">' + ic("rew") + '</button><button data-ep="' + esc(curEp.id) + '" class="mpp" aria-label="Oynat/Durdur">' + ic(AU && !AU.paused ? "pause" : "play") + '</button><button data-act="afwd" aria-label="30 sn ileri">' + ic("fwd") + '</button><div class="mt"><b>' + esc(curEp.t) + "</b><small>" + esc(curEp.show) + '</small></div><button data-act="arate" class="rt">' + String(rate).replace(".", ",") + "×</button></div>";
+  }
 
   /* ---------- fikir süzgeci ---------- */
   function openIdea() {
@@ -537,7 +672,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -549,11 +684,21 @@
     if (d.nf) { newsFilter = d.nf; return render(); }
     if (d.ps) { var a = d.ps.split(":"); S.projects.forEach(function (p) { if (p.id === a[0]) p.status = a[1]; }); save(); return render(); }
     if (d.pe) return editProject(d.pe);
-    if (d.ans != null && P) { var k = +d.ans; P.answers[P.qi] = k; if (k === P.qs[P.qi].q.a) P.score++; return drawPlayer(); }
+    if (d.ans != null && P) { var c = curQ(), k = +d.ans; if (P.ans[c.key]) return; P.ans[c.key] = { v: k, pts: k === c.it.q.a ? 1 : 0 }; return drawPlayer(); }
+    if (d.rate != null && P) { P.ans[curQ().key].pts = +d.rate; return drawPlayer(); }
+    if (d.ep) return playEp(d.ep);
+    if (d.pc) { podCat = d.pc; return render(); }
     switch (d.act) {
       case "next": if (P.i < P.l.slides.length - 1) P.i++; else P.phase = "quiz"; return drawPlayer();
       case "prev": if (P.i > 0) P.i--; return drawPlayer();
-      case "nextq": if (P.qi < P.qs.length - 1) P.qi++; else P.phase = "result"; return drawPlayer();
+      case "nextq":
+        if (P.phase === "warm") { if (P.wi < P.warm.length - 1) P.wi++; else P.phase = "slides"; }
+        else if (P.qi < P.qs.length - 1) P.qi++; else P.phase = "result";
+        return drawPlayer();
+      case "wcheck": var tx2 = val("wans").trim(); if (!tx2) { toast("Önce cevabını yaz"); return; } P.ans[curQ().key] = { text: tx2, pts: null }; return drawPlayer();
+      case "aback": if (AU) AU.currentTime = Math.max(0, AU.currentTime - 15); return;
+      case "afwd": if (AU) AU.currentTime = Math.min(AU.duration || 1e9, AU.currentTime + 30); return;
+      case "arate": var rs = [0.8, 1, 1.15, 1.3], ri = rs.indexOf(S.pod.rate || 1); S.pod.rate = rs[(ri + 1) % rs.length]; if (AU) AU.playbackRate = S.pod.rate; save(); return drawMini();
       case "finish": return finishPlayer();
       case "close": return closePlayer();
       case "review": return openReview();

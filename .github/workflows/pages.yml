@@ -26,8 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Güncel haberleri topla
-        run: python tools/fetch_news.py || echo '{"updated":null,"items":[]}' > data/news.json
+      - name: Güncel haberleri ve podcastları topla
+        run: python tools/fetch_news.py || true
       - name: Site klasörünü hazırla
         run: |
           mkdir -p _site

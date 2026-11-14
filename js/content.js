@@ -452,3 +452,17 @@ window.DEFAULT_PROJECTS = [
   { id: "p11", name: "Controlling AI aracı / freelance Controlling", cat: "gelir", status: "park", next: "Önce hizmet sat, sonra araç" },
   { id: "p12", name: "Mutfak Planı", cat: "aile", status: "bitti", next: "Aile kullanımda" }
 ];
+
+/* Yazarak cevaplanan sorular (üretim pratiği). Derslerin testine otomatik eklenir.
+   keys: cevapta aranacak parçalar (küçük harf); kullanıcı örnek cevaba bakıp kendini puanlar. */
+window.WRITE_Q = {
+  "de1-1": { q: "Almanca yaz: Event listesini cuma saat 12'ye kadar kontrol etmesini kibarca rica et.", model: "Könnten Sie bitte die Event-Liste bis Freitag, 12 Uhr, prüfen?", keys: ["könnt", "bitte", "bis freitag", "prüf"] },
+  "de1-2": { q: "Almanca bir muss-Anforderung yaz: kayıt sırasında çift seri numaraları engellensin.", model: "Das System muss doppelte Seriennummern beim Speichern blockieren.", keys: ["muss", "doppelte seriennummer", "speicher", "blockier"] },
+  "de1-3": { q: "Toplantıda kibarca ve gerekçesiyle itiraz eden bir Almanca cümle yaz.", model: "Ich sehe das etwas anders, weil die Event-Liste abrechnungskritisch ist.", keys: ["ich sehe das", "anders", "weil"] },
+  "de1-4": { q: "Homeoffice'i haftada iki güne çıkarmayı kibarca soran Almanca bir cümle yaz.", model: "Wäre es möglich, auf zwei Homeoffice-Tage pro Woche zu erhöhen?", keys: ["wäre es möglich", "zwei", "homeoffice", "erhöh"] },
+  "sql1-1": { q: "lagerstatus değeri 'Betankung' olan cihazların seriennummer ve modell sütunlarını getiren sorguyu yaz.", model: "SELECT seriennummer, modell\nFROM assets\nWHERE lagerstatus = 'Betankung';", keys: ["select", "seriennummer", "modell", "from assets", "where", "lagerstatus", "'betankung'"], code: true },
+  "sql1-2": { q: "Sparte'si kfl ya da lidl-s olan ve modeli 'MacBook' ile başlayan cihazları getir.", model: "SELECT *\nFROM assets\nWHERE sparte IN ('kfl', 'lidl-s')\n  AND modell LIKE 'MacBook%';", keys: ["from assets", "in (", "like", "'macbook%'", "and"], code: true },
+  "sql1-3": { q: "Model başına cihaz sayısını en çoktan en aza sıralı getiren sorguyu yaz.", model: "SELECT modell, COUNT(*) AS anzahl\nFROM assets\nGROUP BY modell\nORDER BY anzahl DESC;", keys: ["count(*)", "group by modell", "order by", "desc"], code: true },
+  "sql1-4": { q: "Fiyat listesinde (listepreise) karşılığı olmayan modelleri bulan sorguyu yaz.", model: "SELECT a.modell\nFROM assets a\nLEFT JOIN listepreise p ON a.modell = p.modell\nWHERE p.modell IS NULL;", keys: ["left join", "listepreise", "on", "is null"], code: true },
+  "pbi1-3": { q: "Assets tablosundaki Miete sütununu toplayan 'Gesamtmiete' measure'ını yaz.", model: "Gesamtmiete = SUM ( Assets[Miete] )", keys: ["gesamtmiete", "sum", "assets[miete]"], code: true }
+};

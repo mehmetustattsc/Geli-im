@@ -732,93 +732,140 @@
     return '<button class="btn wide" data-act="' + nextAct + '">' + nextLabel + ic("arrow") + "</button>";
   }
 
-  /* ---------- bulmaca (Kreuzworträtsel) ---------- */
+  /* ---------- İsveç bulmacası (Schwedenrätsel) ---------- */
   function nz(s) { return String(s || "").toUpperCase().replace(/Ä/g, "AE").replace(/Ö/g, "OE").replace(/Ü/g, "UE").replace(/ß/g, "SS").replace(/[^A-Z]/g, ""); }
-  function genCW(list) {
-    var N = 19, g = [], pl = [];
-    for (var i = 0; i < N; i++) { g.push([]); for (var j = 0; j < N; j++) g[i].push(null); }
+  function genCW(list, R, C) {
+    R = R || 10; C = C || 7;
+    var g = [], pl = [], clue = {};
+    for (var i = 0; i < R; i++) { g.push([]); for (var j = 0; j < C; j++) g[i].push(null); }
     function can(w, r, c, d) {
       var dr = d ? 1 : 0, dc = d ? 0 : 1, L = w.length, er = r + dr * (L - 1), ec = c + dc * (L - 1), cross = 0;
-      if (r < 0 || c < 0 || er >= N || ec >= N) return -1;
+      if (d === 0 && (c < 1 || r < 0)) return -1;
+      if (d === 1 && (r < 1 || c < 0)) return -1;
+      if (er >= R || ec >= C) return -1;
       var br = r - dr, bc = c - dc, ar = er + dr, ac = ec + dc;
-      if (br >= 0 && bc >= 0 && g[br][bc]) return -1;
-      if (ar < N && ac < N && g[ar][ac]) return -1;
+      if (g[br][bc]) return -1;
+      var ck = clue[br + "_" + bc]; if (ck && ck[d]) return -1;
+      if (ar < R && ac < C && g[ar][ac]) return -1;
       for (var k = 0; k < L; k++) {
         var rr = r + dr * k, cc = c + dc * k, cell = g[rr][cc];
+        if (clue[rr + "_" + cc]) return -1;
         if (cell) { if (cell.ch !== w[k] || cell.d[d]) return -1; cross++; }
         else {
           var a1 = rr + dc, b1 = cc + dr, a2 = rr - dc, b2 = cc - dr;
-          if (a1 < N && b1 < N && g[a1][b1]) return -1;
+          if (a1 < R && b1 < C && g[a1][b1]) return -1;
           if (a2 >= 0 && b2 >= 0 && g[a2][b2]) return -1;
         }
       }
       return cross;
     }
     function put(it, r, c, d) {
-      var w = it.w;
-      for (var k = 0; k < w.length; k++) { var rr = r + (d ? k : 0), cc = c + (d ? 0 : k); if (!g[rr][cc]) g[rr][cc] = { ch: w[k], d: [0, 0] }; g[rr][cc].d[d] = 1; }
+      for (var k = 0; k < it.w.length; k++) { var rr = r + (d ? k : 0), cc = c + (d ? 0 : k); if (!g[rr][cc]) g[rr][cc] = { ch: it.w[k], d: [0, 0] }; g[rr][cc].d[d] = 1; }
+      var key = (r - (d ? 1 : 0)) + "_" + (c - (d ? 0 : 1)); clue[key] = clue[key] || [0, 0]; clue[key][d] = 1;
       pl.push({ it: it, r: r, c: c, d: d });
     }
-    var ws = list.slice().sort(function (a, b) { return b.w.length - a.w.length; });
-    put(ws[0], Math.floor(N / 2), Math.floor((N - ws[0].w.length) / 2), 0);
-    ws.slice(1).forEach(function (it) {
+    var ws = shuffle(list).filter(function (x) { return x.w.length <= Math.max(R, C) - 1; });
+    var first = ws.filter(function (x) { return x.w.length <= C - 1; })[0];
+    if (!first) return null;
+    put(first, Math.floor(Math.random() * R), 1, 0);
+    var used = {}; used[first.id] = 1;
+    for (var pass = 0; pass < 2; pass++) ws.forEach(function (it) {
+      if (used[it.id]) return;
       var w = it.w, cands = [];
-      for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+      for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
         var cell = g[r][c]; if (!cell) continue;
-        for (var k = 0; k < w.length; k++) if (w[k] === cell.ch) {
-          [0, 1].forEach(function (d) { var sr = d ? r - k : r, sc = d ? c : c - k, x = can(w, sr, sc, d); if (x > 0) cands.push([sr, sc, d, x]); });
-        }
+        for (var k = 0; k < w.length; k++) if (w[k] === cell.ch) [0, 1].forEach(function (d) { var sr = d ? r - k : r, sc = d ? c : c - k, x = can(w, sr, sc, d); if (x > 0) cands.push([sr, sc, d, x]); });
       }
-      if (cands.length) { var ch = shuffle(cands).sort(function (a, b) { return b[3] - a[3]; })[0]; put(it, ch[0], ch[1], ch[2]); }
+      if (cands.length) { var ch = shuffle(cands).sort(function (a, b) { return b[3] - a[3]; })[0]; put(it, ch[0], ch[1], ch[2]); used[it.id] = 1; }
     });
-    var r0 = N, c0 = N, r1 = 0, c1 = 0;
-    for (var a = 0; a < N; a++) for (var b = 0; b < N; b++) if (g[a][b]) { r0 = Math.min(r0, a); c0 = Math.min(c0, b); r1 = Math.max(r1, a); c1 = Math.max(c1, b); }
-    var words = pl.map(function (p) { return { id: p.it.id, w: p.it.w, c: p.it.c, a: p.it.a, r: p.r - r0, col: p.c - c0, d: p.d, solved: false, rev: [], tries: 0 }; });
-    words.sort(function (x, y) { return x.r - y.r || x.col - y.col; });
-    var num = 0, nm = {};
-    words.forEach(function (w) { var k = w.r + "_" + w.col; if (!nm[k]) nm[k] = ++num; w.n = nm[k]; });
-    return { rows: r1 - r0 + 1, cols: c1 - c0 + 1, words: words, nm: nm, sel: null, done: false };
+    var cells = {}, filled = 0;
+    var words = pl.map(function (p) { return { id: p.it.id, w: p.it.w, c: p.it.c, dc: p.it.d, a: p.it.a, r: p.r, col: p.c, d: p.d, solved: false, miss: 0, hint: 0 }; });
+    words.forEach(function (w, wi) {
+      for (var k = 0; k < w.w.length; k++) { var key = (w.r + (w.d ? k : 0)) + "_" + (w.col + (w.d ? 0 : k)); if (!cells[key]) { cells[key] = { t: "L", ch: w.w[k], ws: [] }; filled++; } cells[key].ws.push(wi); }
+    });
+    words.forEach(function (w, wi) {
+      var key = (w.r - (w.d ? 1 : 0)) + "_" + (w.col - (w.d ? 0 : 1));
+      cells[key] = cells[key] || { t: "C", h: null, v: null };
+      if (w.d) cells[key].v = wi; else cells[key].h = wi;
+    });
+    return { rows: R, cols: C, words: words, cells: cells, filled: filled, fill: {}, sel: null, done: false, lang: "de", rack: [] };
   }
-  function cwCells(w) { var a = []; for (var k = 0; k < w.w.length; k++) a.push([w.r + (w.d ? k : 0), w.col + (w.d ? 0 : k)]); return a; }
+  function cwCells(w) { var a = []; for (var k = 0; k < w.w.length; k++) a.push((w.r + (w.d ? k : 0)) + "_" + (w.col + (w.d ? 0 : k))); return a; }
   function newCW() {
-    var bank = GM.cw, best = null;
-    for (var t = 0; t < 15; t++) {
-      var pick = pickItems("cw", bank, 10), cw = genCW(pick);
-      if (cw.rows <= 13 && cw.cols <= 12 && (!best || cw.words.length > best.words.length)) best = cw;
-      if (best && best.words.length >= 8) break;
+    var best = null, pool = GM.cw.filter(function (x) { return x.w.length <= 9; });
+    var pri = pickItems("cw", pool, 12);
+    for (var t = 0; t < 80; t++) {
+      var cw = genCW(pri.concat(shuffle(pool)));
+      if (cw && (!best || cw.filled + cw.words.length * 2 > best.filled + best.words.length * 2)) best = cw;
     }
-    return best || genCW(pickItems("cw", bank, 6));
+    var keys = Object.keys(best.cells).filter(function (k) { return best.cells[k].t === "L"; });
+    shuffle(keys).slice(0, Math.round(keys.length * 0.22)).forEach(function (k) { best.fill[k] = 1; });
+    best.words.forEach(function (w) { if (cwCells(w).every(function (k) { return best.fill[k]; })) best.fill[cwCells(w)[0]] = 0; });
+    return best;
   }
+  function cwSelect(cw, wi) {
+    cw.sel = wi;
+    var w = cw.words[wi], need = cwCells(w).filter(function (k) { return !cw.fill[k]; }).map(function (k) { return cw.cells[k].ch; });
+    var abc = "AEINRSTULMOGHBDKZ", dec = [];
+    while (dec.length < Math.min(3, 8 - need.length)) { var ch = abc[Math.floor(Math.random() * abc.length)]; if (dec.indexOf(ch) < 0) dec.push(ch); }
+    cw.rack = shuffle(need.concat(dec)).map(function (ch, i) { return { ch: ch, id: i, used: false }; });
+  }
+  function cwNextWord(cw) {
+    for (var i = 1; i <= cw.words.length; i++) { var j = ((cw.sel == null ? -1 : cw.sel) + i) % cw.words.length; if (!cw.words[j].solved) return cwSelect(cw, j); }
+    cw.sel = null; cw.done = true;
+  }
+  function cwCheckSolved(cw) {
+    cw.words.forEach(function (w) { if (!w.solved && cwCells(w).every(function (k) { return cw.fill[k]; })) w.solved = true; });
+  }
+  function cwPlace(cw, ch) {
+    var w = cw.words[cw.sel], ks = cwCells(w), k = ks.filter(function (x) { return !cw.fill[x]; })[0];
+    if (!k) return true;
+    if (cw.cells[k].ch === ch) { cw.fill[k] = 1; cwCheckSolved(cw); return true; }
+    w.miss++; return false;
+  }
+  function fitClue(t, w, h) {
+    var raw = String(t).toUpperCase().split(/\s+/);
+    for (var fs = 11; fs >= 7; fs -= 0.5) {
+      var maxc = Math.floor((w - 3) / (fs * 0.64)), toks = [], lines = [];
+      raw.forEach(function (x) { while (x.length > maxc) { var cut = maxc - 1; toks.push(x.slice(0, cut) + "-"); x = x.slice(cut); } toks.push(x); });
+      toks.forEach(function (x) { var l = lines[lines.length - 1]; if (l && !/-$/.test(l) && (l + " " + x).length <= maxc) lines[lines.length - 1] = l + " " + x; else lines.push(x); });
+      if (lines.length * fs * 1.08 <= h - 3) return { fs: fs, html: lines.map(esc).join("<br>") };
+    }
+    return { fs: 7, html: esc(String(t).toUpperCase()) };
+  }
+  function clueText(cw, wi) { var w = cw.words[wi]; return cw.lang === "de" ? w.dc : w.c; }
   function renderCW(cw) {
-    var map = {};
-    cw.words.forEach(function (w, wi) { cwCells(w).forEach(function (p, k) { var key = p[0] + "_" + p[1]; map[key] = map[key] || { ch: w.w[k], show: false, ws: [] }; map[key].ws.push(wi); if (w.solved || w.rev.indexOf(k) >= 0 || cw.done) map[key].show = true; }); });
-    var sel = cw.sel != null ? cwCells(cw.words[cw.sel]).map(function (p) { return p[0] + "_" + p[1]; }) : [];
-    var sz = Math.min(34, Math.floor(340 / cw.cols));
-    var h = '<div class="cw" style="grid-template-columns:repeat(' + cw.cols + "," + sz + "px);grid-auto-rows:" + sz + 'px">';
+    var sz = Math.min(50, Math.floor(354 / cw.cols)), sel = cw.sel != null ? cwCells(cw.words[cw.sel]) : [];
+    var h = '<div class="cwtop"><div class="seg sm"><button data-cwl="de" class="' + (cw.lang === "de" ? "on" : "") + '">İpucu: Almanca</button><button data-cwl="tr" class="' + (cw.lang === "tr" ? "on" : "") + '">Türkçe</button></div></div>';
+    h += '<div class="sw" style="grid-template-columns:repeat(' + cw.cols + "," + sz + "px);grid-auto-rows:" + sz + "px;--fs:" + Math.max(8, Math.round(sz / 5.2)) + 'px">';
     for (var r = 0; r < cw.rows; r++) for (var c = 0; c < cw.cols; c++) {
-      var key = r + "_" + c, m = map[key];
-      if (!m) { h += "<span></span>"; continue; }
-      var solved = m.ws.some(function (i) { return cw.words[i].solved; });
-      h += '<button class="cc' + (sel.indexOf(key) >= 0 ? " sel" : "") + (solved ? " ok" : "") + '" data-cwc="' + m.ws[0] + '" style="font-size:' + Math.round(sz * 0.5) + 'px">' + (cw.nm[key] ? "<i>" + cw.nm[key] + "</i>" : "") + (m.show ? m.ch : "") + "</button>";
+      var key = r + "_" + c, m = cw.cells[key];
+      if (!m) { h += '<span class="sx"></span>'; continue; }
+      if (m.t === "C") {
+        var parts = [];
+        if (m.h != null) parts.push([m.h, "h"]);
+        if (m.v != null) parts.push([m.v, "v"]);
+        h += '<div class="sc' + (parts.length > 1 ? " two" : "") + '">' + parts.map(function (p) { var w = cw.words[p[0]]; var fc = fitClue(clueText(cw, p[0]), sz, parts.length > 1 ? sz / 2 : sz); return '<button data-cwc="' + p[0] + '" class="' + p[1] + (w.solved ? " ok" : "") + (cw.sel === p[0] ? " on" : "") + '"><span style="font-size:' + fc.fs + 'px">' + fc.html + "</span></button>"; }).join("") + "</div>";
+      } else {
+        var shown = cw.fill[key] || cw.done, solved = m.ws.some(function (i) { return cw.words[i].solved; });
+        h += '<button class="sl' + (sel.indexOf(key) >= 0 ? " sel" : "") + (shown ? " t" : "") + (solved ? " ok" : "") + (cw.done && !cw.fill[key] ? " rv" : "") + '" data-cwc="' + m.ws[0] + '" style="font-size:' + Math.round(sz * 0.55) + 'px">' + (shown ? m.ch : "") + "</button>";
+      }
     }
     h += "</div>";
-    [[0, "Yatay"], [1, "Dikey"]].forEach(function (D) {
-      var ws = cw.words.map(function (w, i) { return [w, i]; }).filter(function (x) { return x[0].d === D[0]; });
-      if (!ws.length) return;
-      h += '<h4 class="cwh">' + D[1] + '</h4><ul class="cwl">' + ws.map(function (x) { var w = x[0]; return '<li><button data-cwc="' + x[1] + '" class="' + (w.solved ? "ok" : "") + (cw.sel === x[1] ? " sel" : "") + '"><b>' + w.n + "</b>" + esc(w.c) + ' <em>(' + esc(w.a) + ", " + w.w.length + ")</em>" + (w.solved ? ic("check") : "") + "</button></li>"; }).join("") + "</ul>";
-    });
+    if (cw.sel != null) { var w = cw.words[cw.sel]; h += '<p class="cwsel"><b>' + (w.d ? "↓ " : "→ ") + esc(cw.lang === "de" ? w.dc : w.c) + "</b> · " + w.w.length + " harf" + (cw.lang === "de" ? ' · <span class="muted">' + esc(w.c) + "</span>" : "") + "</p>"; }
+    else if (!cw.done) h += '<p class="muted small center">Bir ipucu kutusuna dokun.</p>';
+    else { h += '<div class="cwdone">' + cw.words.map(function (w) { return "<p><b>" + esc(w.a) + " " + esc(w.w.charAt(0) + w.w.slice(1).toLowerCase()) + "</b> · " + esc(w.c) + (w.solved ? "" : ' <span class="muted">(açıldı)</span>') + "</p>"; }).join("") + "</div>"; }
     return h;
   }
   function cwFoot(cw) {
     if (cw.done) return '<button class="btn wide" data-act="gfinish">Sonucu kaydet</button>';
-    if (cw.sel == null) return '<span class="muted small center wide">Bir ipucuna ya da kutuya dokun</span><button class="btn ghost" data-act="cwend">Bitir</button>';
-    var w = cw.words[cw.sel];
-    return '<div class="cwin"><small><b>' + w.n + (w.d ? " Dikey" : " Yatay") + ":</b> " + esc(w.c) + " (" + esc(w.a) + ", " + w.w.length + ' harf)</small><div class="row2"><input id="cwi" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Yaz…"><button class="btn sm ghost" data-act="cwrev" aria-label="Harf aç">' + ic("bulb") + '</button><button class="btn sm" data-act="cwok">Yerleştir</button></div></div>';
+    var rk = cw.sel != null ? '<div class="rack">' + cw.rack.map(function (t, i) { return '<button data-rk="' + i + '"' + (t.used ? ' class="u" disabled' : "") + ">" + t.ch + "</button>"; }).join("") + "</div>" : "";
+    return '<div class="cwf">' + rk + '<div class="row2"><button class="btn sm ghost" data-act="cwend">Bitir</button><span style="flex:1"></span><button class="btn sm ghost" data-act="cwrev"' + (cw.sel == null ? " disabled" : "") + ">" + ic("bulb") + "Harf aç</button></div></div>";
   }
 
   /* ---------- oyun oturumu ---------- */
   var G = null;
-  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Kreuzworträtsel", "pivot", "#7a52c7", "Controlling kelimeleriyle bulmaca"] };
+  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Schwedenrätsel", "pivot", "#3f6fd8", "Gazete bulmacası, iş kelimeleriyle"] };
   function openGame(kind) {
     G = { kind: kind, ix: 0, t0: Date.now(), pts: [] };
     if (kind === "cw") { G.cw = newCW(); }
@@ -847,7 +894,7 @@
     var inp = document.getElementById("cwi"); if (inp) inp.focus();
   }
   function finishGame() {
-    if (G.kind === "cw") G.cw.words.forEach(function (w) { var p = w.solved ? (w.rev.length ? 0.5 : 1) : 0; G.pts.push(p); gUpdate("cw", w.id, p); });
+    if (G.kind === "cw") G.cw.words.forEach(function (w) { var p = w.solved ? (w.miss || w.hint ? 0.5 : 1) : 0; G.pts.push(p); gUpdate("cw", w.id, p); });
     var sc = G.pts.reduce(function (a, b) { return a + b; }, 0);
     S.gplay.push({ date: TODAY, g: G.kind, sc: Math.round(sc * 10) / 10, tot: G.pts.length, min: Math.max(1, Math.round((Date.now() - G.t0) / 60000)) });
     G.res = true; save(); drawGame();
@@ -941,7 +988,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -959,7 +1006,14 @@
     if (d.game) return openGame(d.game);
     if (d.opp != null && OP && OP.res == null) { OP.picked.push(+d.opp); return P ? drawPlayer() : drawGame(); }
     if (d.opu != null && OP && OP.res == null) { OP.picked.splice(+d.opu, 1); return P ? drawPlayer() : drawGame(); }
-    if (d.cwc != null && G && G.kind === "cw" && !G.cw.done) { var ci = +d.cwc, cw = G.cw; if (cw.words[ci].solved) return; if (cw.sel === ci) { var alt = cw.words.findIndex(function (w, j) { return j !== ci && !w.solved && cwCells(w).some(function (p) { return cwCells(cw.words[ci]).some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }); if (alt >= 0) ci = alt; } cw.sel = ci; return drawGame(); }
+    if (d.cwl && G && G.kind === "cw") { G.cw.lang = d.cwl; return drawGame(); }
+    if (d.rk != null && G && G.kind === "cw" && G.cw.sel != null) {
+      var cwr = G.cw, t = cwr.rack[+d.rk], wsel = cwr.words[cwr.sel];
+      if (cwPlace(cwr, t.ch)) { t.used = true; if (wsel.solved) { toast("✓ " + wsel.a + " " + wsel.w.charAt(0) + wsel.w.slice(1).toLowerCase()); cwNextWord(cwr); } }
+      else { toast("Bu harf değil"); var bt = b; bt.classList.add("shake"); setTimeout(function () { drawGame(); }, 350); return; }
+      return drawGame();
+    }
+    if (d.cwc != null && G && G.kind === "cw" && !G.cw.done) { var ci = +d.cwc; if (G.cw.words[ci].solved) return; if (G.cw.sel === ci) { var cur = G.cw.words[ci], alt = G.cw.words.findIndex(function (w, j) { return j !== ci && !w.solved && cwCells(w).some(function (k) { return cwCells(cur).indexOf(k) >= 0; }); }); if (alt >= 0) ci = alt; } cwSelect(G.cw, ci); return drawGame(); }
     if (d.note) return openNote(d.note);
     if (d.sec != null) { var se = document.getElementById("ns-" + d.sec); if (se) se.scrollIntoView({ behavior: "smooth" }); return; }
     if (d.nm) { newsMode = d.nm; return render(); }
@@ -974,12 +1028,7 @@
       case "gclose": return closeGame();
       case "gagain": var gk = G.kind; return openGame(gk);
       case "cwend": G.cw.done = true; G.cw.sel = null; return drawGame();
-      case "cwrev": var cw1 = G.cw, w1 = cw1.words[cw1.sel]; for (var q1 = 0; q1 < w1.w.length; q1++) if (w1.rev.indexOf(q1) < 0) { w1.rev.push(q1); break; } if (w1.rev.length >= w1.w.length) w1.solved = true; return drawGame();
-      case "cwok":
-        var cw2 = G.cw, w2 = cw2.words[cw2.sel], v2 = val("cwi");
-        if (nz(v2) === nz(w2.w)) { w2.solved = true; cw2.sel = null; if (cw2.words.every(function (w) { return w.solved; })) cw2.done = true; toast("Doğru: " + w2.a + " " + w2.w.charAt(0) + w2.w.slice(1).toLowerCase()); }
-        else { w2.tries++; toast(nz(v2).length !== nz(w2.w).length ? "Harf sayısı tutmuyor (" + w2.w.length + ")" : "Olmadı, tekrar dene"); }
-        return drawGame();
+      case "cwrev": var cw1 = G.cw; if (cw1.sel == null) return; var w1 = cw1.words[cw1.sel], k1 = cwCells(w1).filter(function (x) { return !cw1.fill[x]; })[0]; if (k1) { cw1.fill[k1] = 1; w1.hint++; cwCheckSolved(cw1); } if (w1.solved) cwNextWord(cw1); else cwSelect(cw1, cw1.sel); return drawGame();
       case "prev": if (P.i > 0) P.i--; return drawPlayer();
       case "nextq":
         if (P.phase === "warm") { if (P.wi < P.warm.length - 1) P.wi++; else P.phase = "slides"; }

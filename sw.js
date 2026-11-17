@@ -1,6 +1,6 @@
 /* Önbellek sürümünü her yayında artır. */
-var V = "gelisim-v5";
-var CORE = ["./", "index.html", "css/style.css?v=5", "js/content.js?v=5", "js/notes.js?v=5", "js/games.js?v=5", "js/app.js?v=5", "manifest.webmanifest", "icons/icon.svg", "icons/icon-180.png"];
+var V = "gelisim-v6";
+var CORE = ["./", "index.html", "css/style.css?v=6", "js/content.js?v=6", "js/notes.js?v=6", "js/games.js?v=6", "js/app.js?v=6", "manifest.webmanifest", "icons/icon.svg", "icons/icon-180.png"];
 self.addEventListener("install", function (e) { e.waitUntil(caches.open(V).then(function (c) { return c.addAll(CORE); })); self.skipWaiting(); });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== V; }).map(function (k) { return caches.delete(k); })); }));

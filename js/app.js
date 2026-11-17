@@ -735,7 +735,7 @@
   /* ---------- İsveç bulmacası (Schwedenrätsel) ---------- */
   function nz(s) { return String(s || "").toUpperCase().replace(/Ä/g, "AE").replace(/Ö/g, "OE").replace(/Ü/g, "UE").replace(/ß/g, "SS").replace(/[^A-Z]/g, ""); }
   function genCW(list, R, C) {
-    R = R || 10; C = C || 7;
+    R = R || 9; C = C || 8;
     var g = [], pl = [], clue = {};
     for (var i = 0; i < R; i++) { g.push([]); for (var j = 0; j < C; j++) g[i].push(null); }
     function can(w, r, c, d) {
@@ -794,7 +794,7 @@
   function newCW() {
     var best = null, pool = GM.cw.filter(function (x) { return x.w.length <= 9; });
     var pri = pickItems("cw", pool, 12);
-    for (var t = 0; t < 80; t++) {
+    for (var t = 0; t < 150; t++) {
       var cw = genCW(pri.concat(shuffle(pool)));
       if (cw && (!best || cw.filled + cw.words.length * 2 > best.filled + best.words.length * 2)) best = cw;
     }
@@ -840,7 +840,7 @@
     h += '<div class="sw" style="grid-template-columns:repeat(' + cw.cols + "," + sz + "px);grid-auto-rows:" + sz + "px;--fs:" + Math.max(8, Math.round(sz / 5.2)) + 'px">';
     for (var r = 0; r < cw.rows; r++) for (var c = 0; c < cw.cols; c++) {
       var key = r + "_" + c, m = cw.cells[key];
-      if (!m) { h += '<span class="sx"></span>'; continue; }
+      if (!m) { h += '<span class="sc"></span>'; continue; }
       if (m.t === "C") {
         var parts = [];
         if (m.h != null) parts.push([m.h, "h"]);
@@ -854,7 +854,7 @@
     h += "</div>";
     if (cw.sel != null) { var w = cw.words[cw.sel]; h += '<p class="cwsel"><b>' + (w.d ? "↓ " : "→ ") + esc(cw.lang === "de" ? w.dc : w.c) + "</b> · " + w.w.length + " harf" + (cw.lang === "de" ? ' · <span class="muted">' + esc(w.c) + "</span>" : "") + "</p>"; }
     else if (!cw.done) h += '<p class="muted small center">Bir ipucu kutusuna dokun.</p>';
-    else { h += '<div class="cwdone">' + cw.words.map(function (w) { return "<p><b>" + esc(w.a) + " " + esc(w.w.charAt(0) + w.w.slice(1).toLowerCase()) + "</b> · " + esc(w.c) + (w.solved ? "" : ' <span class="muted">(açıldı)</span>') + "</p>"; }).join("") + "</div>"; }
+    else { h += '<div class="cwdone">' + cw.words.map(function (w) { return "<p><b>" + esc(w.a !== "-" ? w.a + " " : "") + esc(w.w.charAt(0) + w.w.slice(1).toLowerCase()) + "</b> · " + esc(w.c) + (w.solved ? "" : ' <span class="muted">(açıldı)</span>') + "</p>"; }).join("") + "</div>"; }
     return h;
   }
   function cwFoot(cw) {
@@ -1009,7 +1009,7 @@
     if (d.cwl && G && G.kind === "cw") { G.cw.lang = d.cwl; return drawGame(); }
     if (d.rk != null && G && G.kind === "cw" && G.cw.sel != null) {
       var cwr = G.cw, t = cwr.rack[+d.rk], wsel = cwr.words[cwr.sel];
-      if (cwPlace(cwr, t.ch)) { t.used = true; if (wsel.solved) { toast("✓ " + wsel.a + " " + wsel.w.charAt(0) + wsel.w.slice(1).toLowerCase()); cwNextWord(cwr); } }
+      if (cwPlace(cwr, t.ch)) { t.used = true; if (wsel.solved) { toast("✓ " + (wsel.a !== "-" ? wsel.a + " " : "") + wsel.w.charAt(0) + wsel.w.slice(1).toLowerCase()); cwNextWord(cwr); } }
       else { toast("Bu harf değil"); var bt = b; bt.classList.add("shake"); setTimeout(function () { drawGame(); }, 350); return; }
       return drawGame();
     }

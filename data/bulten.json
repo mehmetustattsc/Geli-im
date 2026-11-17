@@ -1,0 +1,74 @@
+{
+  "issues": [
+    {
+      "date": "2026-11-17",
+      "title": "Bülten #1 · 17 Kasım 2026",
+      "intro": "Bu hafta öne çıkanlar: Excel'deki Copilot artık finans ekipleri için mutabakat ve rapor işlerine giriyor, Power BI'da yapay zekâ ajanları kalıcı hale geldi, Controller maaşları ve Homeoffice üzerine yeni rakamlar var. Kulüp uygulaması pazarına da bir göz attık.",
+      "items": [
+        {
+          "cat": "ki",
+          "title": "Excel'deki Copilot finans ekipleri için mutabakat ve rapor yapmaya başladı",
+          "summary": "Microsoft, Excel'deki Copilot'a muhasebe ve finans ekiplerine yönelik yeni beceriler ekledi: hesap mutabakatı, rapor hazırlama ve kayıt önerileri. Ekim'deki deneme döneminin ardından Kasım 2026'da genel kullanıma açıldı. Önemli bir sınır var: Copilot kayıtları kendisi yapmıyor, yalnızca öneri hazırlıyor; son kontrol ve onay uzmanda kalıyor. Özellik ayrıca ücretli Copilot lisansı gerektiriyor.",
+          "why": "Bechtle'de Copilot'a geçiş konuşuluyorsa, ay sonu kontrollerinin (Vorprüfung, Finalprüfung) hangi kısmının buna uygun olduğunu şimdiden düşünmek seni öne çıkarır. Kural aynı: yapay zekâ hazırlar, Controlling onaylar.",
+          "src": "BornCity",
+          "url": "https://borncity.com/news/copilot-in-excel-microsoft-automatisiert-kontenabstimmung-und-buchungen/",
+          "lang": "de"
+        },
+        {
+          "cat": "pbi",
+          "title": "Power BI'da yapay zekâ ajanları kalıcı oldu; eski Desktop sürümleri kaydedemiyor",
+          "summary": "Microsoft'un Eylül 2026 güncellemesiyle Power BI'daki ajan özellikleri genel kullanıma açıldı: bir yapay zekâ ajanı veri modelini ve raporu doğrudan okuyup değiştirebiliyor. Aynı güncellemede bir uyarı da var: Mart 2026 ya da daha eski Power BI Desktop sürümleri, Ekim'den itibaren OneDrive ve SharePoint'e dosya kaydedip paylaşamıyor. Ayrıca eski doğal dil aracı Q&A Aralık 2026'da kaldırılıyor.",
+          "why": "Power BI Desktop'ı iş bilgisayarına kurdurursan güncel sürüm olduğundan emin ol. PL-300 hazırlığında Copilot ve ajan konuları artık sınav dışı bir ayrıntı değil, günlük işin parçası.",
+          "src": "Microsoft Fabric Community",
+          "url": "https://community.fabric.microsoft.com/t5/Power-BI-Updates-Blog/Power-BI-September-2026-Feature-Summary/ba-p/5325831",
+          "lang": "en"
+        },
+        {
+          "cat": "ctl",
+          "title": "Orta ölçekli şirketlerde Controlling'de yapay zekâ: gerçekten ne kazandırıyor?",
+          "summary": "Bir değerlendirmeye göre Alman şirketlerinin aşağı yukarı üçte biri artık aktif olarak yapay zekâ kullanıyor; bu oran bir yılda neredeyse iki katına çıkmış. Controlling'de en net fayda nakit akışı planlaması ve satış tahminlerinde görülüyor: hata oranları düşüyor, raporlar otomatikleşiyor. Ama madalyonun öbür yüzü de var: kullanan şirketlerin önemli bir kısmı maliyetin beklenenden yüksek çıktığını söylüyor. Yazar, ekipteki \"işimizi kaybeder miyiz?\" kaygısının açıkça konuşulmasını öneriyor.",
+          "why": "Event listesini DB'ye taşıma konusunda iş arkadaşlarının direnci bununla aynı türden bir kaygı. Konuyu açıkça konuşmak ve faydayı rakamla göstermek, toplantıda kullanabileceğin bir argüman.",
+          "src": "Collective Brain",
+          "url": "https://collectivebrain.de/ki-controlling-forecasting-mittelstand-2026/",
+          "lang": "de"
+        },
+        {
+          "cat": "ki",
+          "title": "Yapay zekâ yetkinliği Controller'lar için zorunlu hale geliyor",
+          "summary": "Controlling'de yapay zekâ araçları kullanılıyorsa, AB Yapay Zekâ Yasası çalışanların bu araçlar konusunda yeterli bilgiye sahip olmasını ve bunun belgelenmesini istiyor. Eğitim kurumları bu yüzden \"KI-Kompetenz\" sertifikalı kurslar açıyor. Yazıda ayrıca, yapay zekânın neyi yapamayacağı da vurgulanıyor: rakamları hazırlayabilir, ama bankaya ya da yönetime anlatılacak hikâyeyi kurmak hâlâ insanın işi.",
+          "why": "Yapay zekâyla ürün geliştirme deneyimin (TTSC App, oyunlar) bir CV maddesine dönüşebilir: \"KI-Kompetenz\" artık ilanlarda aranan bir beceri. Kariyer M1'deki başarı cümlelerine bunu da ekleyebilirsin.",
+          "src": "Skill Sprinters",
+          "url": "https://skill-sprinters.de/blog/ki-digitalisierung/ki-fuer-controller/",
+          "lang": "de"
+        },
+        {
+          "cat": "car",
+          "title": "Controller maaşları 2026: bölgendeki rakamlar",
+          "summary": "Robert Half'ın 2026 verilerine göre Mannheim bölgesinde bir Controller'ın yıllık brüt maaşı, giriş seviyesinde (25. yüzdelik) yaklaşık 56.650 €, ortada (medyan) yaklaşık 75.700 €. Entgeltatlas'a dayanan başka bir hesaplama, 3–5 yıl deneyimli Controller'lar için aylık brüt maaşı yaklaşık 4.580 € ile 6.250 € arasında gösteriyor. Kienbaum'un çalışmasına göre maaşlar bir önceki yıla göre ortalama %3,5 artmış.",
+          "why": "Senin 4.000 € brüt alt sınırın, bu verilere göre deneyimine uyan aralığın altında kalıyor. Dikkat edilmesi gereken bir nokta: ilanlar genelde lisans diploması varsayıyor. Yine de maaş görüşmesinde dayanak olarak kullanabileceğin somut rakamlar bunlar.",
+          "src": "Robert Half",
+          "url": "https://www.roberthalf.com/de/de/job-details/controller/mannheim",
+          "lang": "de"
+        },
+        {
+          "cat": "car",
+          "title": "Homeoffice kalıcı: çalışanların yarısından fazlası haftada en az iki gün evden çalışıyor",
+          "summary": "PwC'nin \"Home & Office\" araştırmasına göre çalışanların %83'ü düzenli olarak evden çalışıyor, %58'i haftada en az iki gün. Şirketlerin %77'si Homeoffice düzenlemelerini sürdürmek ya da genişletmek istiyor. İşverenlerin %87'si ve çalışanların %89'u evdeki verimliliğin ofisteki kadar ya da daha yüksek olduğunu söylüyor. Öte yandan Almanya'da yasal bir Homeoffice hakkı yok; bu, sözleşmeye ya da işyeri anlaşmasına bağlı.",
+          "why": "Haftada iki gün Homeoffice istemen piyasada olağan bir talep. Görüşmede \"çoğu şirket bunu sunuyor ve verimlilik düşmüyor\" argümanını bu rakamlarla destekleyebilirsin.",
+          "src": "Der Betrieb",
+          "url": "https://der-betrieb.de/?p=43001",
+          "lang": "de"
+        },
+        {
+          "cat": "club",
+          "title": "Kulüp uygulaması pazarı: rakipler kim, kulüpler neye bakıyor?",
+          "summary": "Almanya'da amatör kulüplerin dijitalleşmesi hızlanıyor. Bir karşılaştırma yazısına göre SportMember gibi takım odaklı uygulamalar şimdiden 10.000'i aşkın kulüpte kullanılıyor; özellikle futbol, hentbol ve voleybolda yaygın. Hessen Spor Birliği (LSB) ise kulüplerin doğru uygulamayı seçmesine yardım eden ücretsiz bir karşılaştırma portalı açtı. Kulüpler genelde üç şeye bakıyor: iletişim, organizasyon ve üye yönetimi.",
+          "why": "TTSC App için rakiplerin güçlü olduğu alan iletişim ve takvim. Senin farkın çok dillilik ve antrenör-oyuncu geri bildirimi; Pazarlama M1'deki \"dar hedef\" dersini bu yazıyla birlikte oku.",
+          "src": "selbststaendigkeit.de",
+          "url": "https://selbststaendigkeit.de/buchhaltung-fuer-gruender/vereinssoftware-kostenlos/",
+          "lang": "de"
+        }
+      ]
+    }
+  ]
+}

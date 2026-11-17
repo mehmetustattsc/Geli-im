@@ -8,6 +8,15 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 - `.github/workflows/pages.yml`: push ve her sabah → haberleri topla → Pages'e yayınla
 - Veriler telefonda `localStorage` (`gelisim.v1`); Ben sekmesinde yedek kodu var.
 
+## Bülten (Güncel sekmesi)
+- `data/bulten.json`: `{"issues":[{date,title,intro,items:[{cat,title,summary,why,src,url,lang}]}]}`; en yeni sayı en başta, en fazla 12 sayı.
+- `cat`: ki, ctl, de, sql, pbi, mkt, car, club. `lang`: kaynağın dili (de/en/tr). Türkçe olmayanlarda uygulama "Türkçe tamamı" (Google Çeviri) düğmesi gösterir.
+- Özetler Türkçe ve kendi cümlelerimizle (alıntı yok, 3–5 cümle); `why` Mehmet'in durumuna bağlar (Bechtle Controlling, DB/KI projesi, TTSC App, iş değişikliği kriterleri).
+- Haftalık otomatik görev yeni sayıyı ekleyip push eder; push Pages'i yeniden yayınlar.
+
+## Ders notları
+- `js/notes.js` → `NOTES[alan]`: bölümler ve bloklar (p, list, tip + slayt görselleri). Yol sekmesinden açılır.
+
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.
 - Yazılı sorular `WRITE_Q` (content.js sonunda): kullanıcı yazar, örnek cevap + anahtar kelimelerle karşılaştırıp kendini puanlar (1 / 0,5 / 0).

@@ -303,3 +303,30 @@ body.hasmini #app{padding-bottom:calc(env(safe-area-inset-bottom) + 160px)}
 .cd.done .lh{color:#fff}
 .legend span .ic{color:var(--bad)}
 .tabs button span{font-size:10.5px}
+
+/* bülten ve notlar */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:14px;padding:4px;margin-bottom:12px}
+.seg button{padding:9px 0;border-radius:11px;font-weight:650;color:var(--mut)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--sh)}
+.bul-h{border-top:5px solid var(--acc)}
+.news.bul p{color:var(--ink);font-size:15px;line-height:1.55;opacity:.9}
+.why{display:flex;gap:8px;background:color-mix(in srgb,var(--c) 9%,var(--card));border-radius:12px;padding:10px 12px;margin-top:10px}
+.why .ic{color:var(--c);margin-top:2px}.why p{margin:0;font-size:14px!important}
+.na{flex-wrap:wrap}
+button.cl1{width:100%;text-align:left}
+.nbtns{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px}
+.nbtns button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;border-radius:12px;background:color-mix(in srgb,var(--c) 10%,var(--card));color:var(--c);font-size:11px;font-weight:700}
+.nbtns .ic{width:24px;height:24px}
+.nbtn{margin:12px 0 0}
+.rt-t{flex:1;font:700 16px var(--fd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reader{padding-bottom:40px}
+.rh{font:800 28px/1.2 var(--fd);margin:8px 0}
+.toc{display:flex;flex-direction:column;gap:4px;background:var(--card);border-radius:14px;padding:10px;box-shadow:var(--sh);margin-bottom:10px}
+.toc button{text-align:left;padding:7px 8px;border-radius:8px;font-size:14px;color:var(--c);font-weight:600}
+.nsec{padding-top:18px}
+.nsec h3{font:750 20px/1.3 var(--fd);margin:0 0 8px;padding-top:8px;border-top:2px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.np{font-size:16px;line-height:1.65;margin:8px 0}
+.nl{padding-left:20px;margin:8px 0}.nl li{margin:6px 0;line-height:1.5}
+.ntip{display:flex;gap:10px;background:color-mix(in srgb,#e3a018 13%,var(--card));border-radius:14px;padding:12px 14px;margin:12px 0}
+.ntip .ic{color:#b07a00;margin-top:2px}.ntip p{margin:0;font-size:15px;line-height:1.5}
+.nv{margin:12px 0}

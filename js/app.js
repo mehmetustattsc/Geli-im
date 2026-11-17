@@ -286,7 +286,8 @@
   /* ---------- Yol haritası ---------- */
   function vRoad() {
     var start = S.start, end = S.target, tot = Math.max(1, days(start, end)), now = Math.min(1, Math.max(0, days(start, TODAY) / tot));
-    var h = '<section class="card"><h3>Hedefe giden yol</h3><p>Ara hedefler tarih sırasıyla. Tamamladıklarını Ben sekmesinde işaretleyebilirsin.</p><div class="road">';
+    var h = '<section class="card"><h3>Ders notları</h3><p>Derslerden bağımsız başvuru kitapçığı: nedir, ne işe yarar, nasıl çalışır.</p><div class="nbtns">' + TR.map(function (t) { return '<button data-note="' + t.id + '" style="--c:' + t.color + '">' + ic(t.icon) + "<span>" + esc(t.short) + "</span></button>"; }).join("") + "</div></section>";
+    h += '<section class="card"><h3>Hedefe giden yol</h3><p>Ara hedefler tarih sırasıyla. Tamamladıklarını Ben sekmesinde işaretleyebilirsin.</p><div class="road">';
     h += '<div class="road-line"><i style="width:' + now * 100 + '%"></i></div>';
     window.MILESTONES.forEach(function (m) {
       var x = Math.min(100, Math.max(0, days(start, m.date) / tot * 100));
@@ -297,7 +298,7 @@
     }).join("") + "</ol></section>";
     TR.forEach(function (t) {
       var s = trackStats(t.id);
-      h += '<section class="card track" id="t-' + t.id + '" style="--c:' + t.color + '"><div class="row">' + ring(s.pct, t.color, 54, Math.round(s.pct * 100) + "%") + "<div><h3>" + esc(t.name) + "</h3><p>" + s.done + "/" + s.avail + " ders" + (s.avg != null ? " · ortalama %" + Math.round(s.avg * 100) : "") + "</p></div></div>";
+      h += '<section class="card track" id="t-' + t.id + '" style="--c:' + t.color + '"><div class="row">' + ring(s.pct, t.color, 54, Math.round(s.pct * 100) + "%") + "<div><h3>" + esc(t.name) + "</h3><p>" + s.done + "/" + s.avail + " ders" + (s.avg != null ? " · ortalama %" + Math.round(s.avg * 100) : "") + "</p></div></div>" + '<button class="btn sm ghost nbtn" data-note="' + t.id + '">' + ic("book") + "Ders notu</button>";
       CUR[t.id].forEach(function (m, mi) {
         var allDone = m.lessons.length && m.lessons.every(function (l) { return done(l.id); });
         var isCur = s.curMod === m;
@@ -362,7 +363,9 @@
   }
   var NEWSCAT = [["all", "Hepsi"], ["ki", "Yapay zekâ"], ["ctl", "Controlling"], ["de", "Almanca"], ["sql", "SQL"], ["pbi", "Power BI"], ["mkt", "Pazarlama"], ["car", "Kariyer"], ["club", "Kulüp / spor"]];
   function vNews() {
-    var h = '<div class="filters">' + NEWSCAT.map(function (c) { return '<button data-nf="' + c[0] + '" class="' + (newsFilter === c[0] ? "on" : "") + '">' + c[1] + "</button>"; }).join("") + "</div>";
+    var seg = '<div class="seg"><button data-nm="bulten" class="' + (newsMode === "bulten" ? "on" : "") + '">Bülten</button><button data-nm="akis" class="' + (newsMode === "akis" ? "on" : "") + '">Haber akışı</button></div>';
+    if (newsMode === "bulten") return seg + vBulten();
+    var h = seg + '<div class="filters">' + NEWSCAT.map(function (c) { return '<button data-nf="' + c[0] + '" class="' + (newsFilter === c[0] ? "on" : "") + '">' + c[1] + "</button>"; }).join("") + "</div>";
     if (!NEWS) return h + '<p class="muted center">Yükleniyor…</p>';
     var items = NEWS.items.filter(function (x) { return newsFilter === "all" || x.tr === newsFilter; });
     h += '<p class="muted small">' + (NEWS.updated ? "Son güncelleme: " + esc(NEWS.updated) + " · her sabah otomatik yenilenir" : NEWS.offline ? "Çevrimdışısın; liste yüklenemedi." : "Liste henüz oluşturulmadı. İlk otomatik güncellemeden sonra burada olacak.") + "</p>";
@@ -370,7 +373,7 @@
     items.forEach(function (x) {
       var col = TRK[x.tr] ? TRK[x.tr].color : x.tr === "ki" ? "#0f766e" : x.tr === "ctl" ? "#475569" : "#b45309", rd = S.read[x.l];
       h += '<article class="news ' + (rd ? "rd" : "") + '" style="--c:' + col + '"><div class="nh"><span class="tag">' + esc(catName(x.tr)) + "</span><small>" + esc(x.s || "") + (x.d ? " · " + esc(x.d) : "") + '</small></div><a href="' + esc(x.l) + '" target="_blank" rel="noopener" data-read="' + esc(x.l) + '"><h3>' + esc(x.t) + "</h3></a>" + (x.x ? "<p>" + esc(x.x) + "</p>" : "") +
-        '<div class="na"><a class="btn sm ghost" href="' + esc(x.l) + '" target="_blank" rel="noopener" data-read="' + esc(x.l) + '">' + ic("ext") + "Oku</a>" + (rd ? '<span class="muted small">' + ic("check") + "okundu</span>" : "") + "</div></article>";
+        '<div class="na"><a class="btn sm ghost" href="' + esc(x.l) + '" target="_blank" rel="noopener" data-read="' + esc(x.l) + '">' + ic("ext") + "Kaynak</a>" + '<a class="btn sm" href="' + esc(trUrl(x.l)) + '" target="_blank" rel="noopener" data-read="' + esc(x.l) + '">' + ic("book") + "Türkçe oku</a>" + (rd ? '<span class="muted small">' + ic("check") + "okundu</span>" : "") + "</div></article>";
     });
     h += '<h2 class="sec">Kalıcı kaynaklar</h2>';
     TR.forEach(function (t) { (window.CLASSICS[t.id] || []).forEach(function (c) { h += '<a class="cl1" style="--c:' + t.color + '" href="' + esc(c[2]) + '" target="_blank" rel="noopener"><span class="tag">' + esc(t.short) + "</span><b>" + esc(c[0]) + "</b><small>" + esc(c[1]) + "</small></a>"; }); });
@@ -378,10 +381,56 @@
   }
   function catName(c) { for (var i = 0; i < NEWSCAT.length; i++) if (NEWSCAT[i][0] === c) return NEWSCAT[i][1]; return c; }
   function newsTeaser(tid) {
-    if (!NEWS) { loadNews(function () { if (view === "today") { var el = document.getElementById("nteaser"); if (el) el.outerHTML = newsTeaser(tid); } }); return '<div id="nteaser"></div>'; }
-    var it = NEWS.items.filter(function (x) { return !S.read[x.l] && (x.tr === tid || x.tr === "ki"); })[0] || NEWS.items.filter(function (x) { return !S.read[x.l]; })[0];
+    if (!BUL) { loadBul(function () { if (view === "today") { var el = document.getElementById("nteaser"); if (el) el.outerHTML = newsTeaser(tid); } }); return '<div id="nteaser"></div>'; }
+    var I = BUL.issues[0]; if (!I) return '<div id="nteaser"></div>';
+    var it = I.items.filter(function (x) { return !S.read[x.url] && x.cat === tid; })[0] || I.items.filter(function (x) { return !S.read[x.url]; })[0];
     if (!it) return '<div id="nteaser"></div>';
-    return '<div id="nteaser"><h2 class="sec">Bugün okumaya değer</h2><a class="cl1" style="--c:' + (TRK[it.tr] ? TRK[it.tr].color : "#0f766e") + '" href="' + esc(it.l) + '" target="_blank" rel="noopener" data-read="' + esc(it.l) + '"><span class="tag">' + esc(catName(it.tr)) + "</span><b>" + esc(it.t) + "</b><small>" + esc(it.s || "") + "</small></a></div>";
+    return '<div id="nteaser"><h2 class="sec">Bültenden</h2><button class="cl1" style="--c:' + (TRK[it.cat] ? TRK[it.cat].color : "#0f766e") + '" data-go="news"><span class="tag">' + esc(catName(it.cat)) + "</span><b>" + esc(it.title) + "</b><small>" + esc(it.summary.slice(0, 110)) + "…</small></button></div>";
+  }
+
+
+  /* ---------- ders notları ---------- */
+  function trUrl(u) { return "https://translate.google.com/translate?sl=auto&tl=tr&hl=tr&u=" + encodeURIComponent(u); }
+  function noteBlock(b, col) {
+    if (b.t === "p") return '<p class="np">' + esc(b.x) + "</p>";
+    if (b.t === "list") return '<ul class="nl">' + b.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    if (b.t === "tip") return '<div class="ntip">' + ic("bulb") + "<p>" + esc(b.x) + "</p></div>";
+    return '<div class="nv">' + slideVisual(b, col) + "</div>";
+  }
+  function openNote(tid) {
+    var N = (window.NOTES || {})[tid]; if (!N) return;
+    var t = TRK[tid], col = t.color, el = document.getElementById("player");
+    if (!el) { el = document.createElement("div"); el.id = "player"; document.body.appendChild(el); }
+    el.style.setProperty("--c", col); document.body.classList.add("noscroll");
+    var h = '<div class="pl-top"><button data-act="closeNote" aria-label="Kapat">' + ic("x") + '</button><b class="rt-t">' + esc(N.title) + '</b></div><div class="pl-body reader">';
+    h += '<span class="tag">' + ic(t.icon) + esc(t.name) + '</span><h2 class="rh">' + esc(N.title) + '</h2><p class="sp">' + esc(N.intro) + '</p><div class="toc">' +
+      N.sections.map(function (s, i) { return '<button data-sec="' + i + '">' + esc(s.h) + "</button>"; }).join("") + "</div>";
+    N.sections.forEach(function (s, i) { h += '<section class="nsec" id="ns-' + i + '"><h3>' + esc(s.h) + "</h3>" + s.blocks.map(function (b) { return noteBlock(b, col); }).join("") + "</section>"; });
+    h += '<button class="btn wide ghost" data-act="closeNote">Kapat</button></div>';
+    el.innerHTML = h; el.querySelector(".pl-body").scrollTop = 0;
+  }
+
+  /* ---------- bülten ---------- */
+  var BUL = null, newsMode = "bulten", bulIx = 0;
+  function loadBul(cb) {
+    fetch("data/bulten.json?" + TODAY, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { BUL = j || { issues: [] }; cb && cb(); }).catch(function () { BUL = { issues: [], offline: true }; cb && cb(); });
+  }
+  function vBulten() {
+    if (!BUL) { loadBul(render); return '<p class="muted center">Yükleniyor…</p>'; }
+    if (!BUL.issues.length) return '<section class="card"><p>' + (BUL.offline ? "Çevrimdışısın." : "Henüz bülten yok.") + "</p></section>";
+    var I = BUL.issues[Math.min(bulIx, BUL.issues.length - 1)], h = "";
+    if (BUL.issues.length > 1) h += '<div class="filters">' + BUL.issues.map(function (x, i) { return '<button data-bi="' + i + '" class="' + (i === bulIx ? "on" : "") + '">' + fmt(x.date) + "</button>"; }).join("") + "</div>";
+    h += '<section class="card bul-h"><span class="tag">' + ic("news") + "Haftalık bülten</span><h3>" + esc(I.title) + "</h3><p>" + esc(I.intro) + "</p></section>";
+    I.items.forEach(function (x) {
+      var col = TRK[x.cat] ? TRK[x.cat].color : x.cat === "ki" ? "#0f766e" : x.cat === "ctl" ? "#475569" : "#b45309", rd = S.read[x.url];
+      h += '<article class="news bul ' + (rd ? "rd" : "") + '" style="--c:' + col + '"><div class="nh"><span class="tag">' + esc(catName(x.cat)) + "</span><small>" + esc(x.src) + " · " + (x.lang === "de" ? "Almanca" : x.lang === "en" ? "İngilizce" : "Türkçe") + "</small></div><h3>" + esc(x.title) + "</h3><p>" + esc(x.summary) + "</p>" +
+        (x.why ? '<div class="why">' + ic("compass") + "<p><b>Senin için:</b> " + esc(x.why) + "</p></div>" : "") +
+        '<div class="na">' + (x.lang !== "tr" ? '<a class="btn sm" href="' + esc(trUrl(x.url)) + '" target="_blank" rel="noopener" data-read="' + esc(x.url) + '">' + ic("book") + "Türkçe tamamı</a>" : "") +
+        '<a class="btn sm ghost" href="' + esc(x.url) + '" target="_blank" rel="noopener" data-read="' + esc(x.url) + '">' + ic("ext") + "Kaynak</a>" + (rd ? '<span class="muted small">' + ic("check") + "okundu</span>" : "") + "</div></article>";
+    });
+    h += '<p class="muted small">Özetler Türkçe yazıldı. \"Türkçe tamamı\" makalenin tamamını Google Çeviri ile açar; makine çevirisi olduğu için bazı cümleler kusurlu olabilir.</p>';
+    return h;
   }
 
   /* ---------- Projeler ---------- */
@@ -672,7 +721,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -687,6 +736,10 @@
     if (d.ans != null && P) { var c = curQ(), k = +d.ans; if (P.ans[c.key]) return; P.ans[c.key] = { v: k, pts: k === c.it.q.a ? 1 : 0 }; return drawPlayer(); }
     if (d.rate != null && P) { P.ans[curQ().key].pts = +d.rate; return drawPlayer(); }
     if (d.ep) return playEp(d.ep);
+    if (d.note) return openNote(d.note);
+    if (d.sec != null) { var se = document.getElementById("ns-" + d.sec); if (se) se.scrollIntoView({ behavior: "smooth" }); return; }
+    if (d.nm) { newsMode = d.nm; return render(); }
+    if (d.bi != null) { bulIx = +d.bi; return render(); }
     if (d.pc) { podCat = d.pc; return render(); }
     switch (d.act) {
       case "next": if (P.i < P.l.slides.length - 1) P.i++; else P.phase = "quiz"; return drawPlayer();
@@ -701,6 +754,7 @@
       case "arate": var rs = [0.8, 1, 1.15, 1.3], ri = rs.indexOf(S.pod.rate || 1); S.pod.rate = rs[(ri + 1) % rs.length]; if (AU) AU.playbackRate = S.pod.rate; save(); return drawMini();
       case "finish": return finishPlayer();
       case "close": return closePlayer();
+      case "closeNote": var pe = document.getElementById("player"); if (pe) pe.remove(); document.body.classList.remove("noscroll"); return;
       case "review": return openReview();
       case "idea": return openIdea();
       case "closeSheet": return closeSheet();

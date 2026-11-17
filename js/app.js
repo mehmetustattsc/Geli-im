@@ -80,7 +80,7 @@
       goal: "Kariyer adımı: Prozess- / Datenanalyst gibi bir rol, ≥4.000 € brüt, ≤30 km ya da ≥%50 remote.",
       plan: { 1: "de", 2: "sql", 3: "mkt", 4: "pbi", 5: "car", 6: "weak", 0: "review" },
       sessions: [], best: {}, tasks: {}, srs: {}, ideas: [], read: {}, listen: {},
-      pod: { pos: {}, done: {}, last: null, rate: 1, goal: 150 },
+      pod: { pos: {}, done: {}, last: null, rate: 1, goal: 150 }, gs: {}, gplay: [],
       projects: JSON.parse(JSON.stringify(window.DEFAULT_PROJECTS)),
       ms: {}, notes: "", pend: { km: 50, days: 4, rate: 0.25, mins: 45 }
     };
@@ -248,6 +248,7 @@
     }).join("") + "</div>";
 
     h += '<button class="go-btn sm" data-go="listen">' + ic("head", "big") + "<span><small>Yolda mısın?</small><b>Almanca dinle</b><em>Bu hafta " + weekListen() + " / " + (S.pod.goal || 150) + " dk</em></span>" + ic("arrow") + "</button>";
+    h += gamesCard();
     var nt = tp.tid || (f && f.t.id);
     h += newsTeaser(nt);
     h += '<button class="idea-btn" data-act="idea">' + ic("bulb") + "<span><b>Yeni bir şey mi istiyorsun?</b><small>Eklemeden önce hedefine uyup uymadığına birlikte bakalım</small></span>" + ic("arrow") + "</button>";
@@ -494,17 +495,22 @@
   function openLesson(lid) {
     var L = LES[lid]; if (!L) return;
     var warm = dueList(lid).slice(0, 3);
-    P = { kind: "lesson", lid: lid, tr: L.tr, l: L.l, phase: warm.length ? "warm" : "slides", warm: warm, wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(),
+    var seq = [], sl = L.l.slides;
+    sl.forEach(function (s, i) { seq.push({ k: "s", s: s }); if ((i + 1) % 2 === 0 && i < sl.length - 1) { var c = genCheck(sl[i]) || genCheck(sl[i - 1]); if (c) seq.push({ k: "c", q: c }); } });
+    var lastC = genCheck(sl[sl.length - 1]); if (lastC) seq.push({ k: "c", q: lastC });
+    shuffle(GM.satz.filter(function (x) { return x.l === lid; }).map(function (x) { return { k: "g", kind: "satz", it: x }; })
+      .concat(GM.sql.filter(function (x) { return x.l === lid; }).map(function (x) { return { k: "g", kind: "sql", it: x }; }))).slice(0, 2).forEach(function (g) { seq.push(g); });
+    P = { kind: "lesson", lid: lid, tr: L.tr, l: L.l, seq: seq, phase: warm.length ? "warm" : "slides", warm: warm, wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(),
       qs: L.l.quiz.map(function (q, k) { return { q: q, id: lid + "#" + k }; }) };
     drawPlayer();
   }
   function openReview() {
     var pool = dueList().slice(0, 12);
     if (!pool.length) return;
-    P = { kind: "review", lid: null, tr: "review", l: { title: "Tekrar", slides: [] }, phase: "quiz", warm: [], wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(), qs: pool };
+    P = { kind: "review", lid: null, tr: "review", l: { title: "Tekrar", slides: [] }, seq: [], phase: "quiz", warm: [], wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(), qs: pool };
     drawPlayer();
   }
-  function curQ() { return P.phase === "warm" ? { it: P.warm[P.wi], key: "w" + P.wi } : { it: P.qs[P.qi], key: "q" + P.qi }; }
+  function curQ() { if (P.phase === "slides" && P.seq[P.i] && P.seq[P.i].k === "c") return { it: { q: P.seq[P.i].q }, key: "c" + P.i }; return P.phase === "warm" ? { it: P.warm[P.wi], key: "w" + P.wi } : { it: P.qs[P.qi], key: "q" + P.qi }; }
   function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
   function renderQ(it, key, label) {
     var Q = it.q, A = P.ans[key], h = '<div class="slide quiz"><span class="tag">' + ic(label === "Isınma" ? "refresh" : "star") + label + (it.tr && TRK[it.tr] && label !== "Test" ? " · " + esc(TRK[it.tr].short) : "") + "</span><h2>" + esc(Q.q) + "</h2>";
@@ -531,14 +537,24 @@
     if (!el) { el = document.createElement("div"); el.id = "player"; document.body.appendChild(el); }
     el.style.setProperty("--c", col);
     document.body.classList.add("noscroll");
-    var nW = P.warm.length, nS = P.l.slides.length, nQ = P.qs.length, tot = nW + nS + nQ;
+    var nW = P.warm.length, nS = P.seq.length, nQ = P.qs.length, tot = nW + nS + nQ;
     var pos = P.phase === "warm" ? P.wi : P.phase === "slides" ? nW + P.i : P.phase === "quiz" ? nW + nS + P.qi : tot;
-    var lab = P.phase === "warm" ? "Isınma " + (P.wi + 1) + "/" + nW : P.phase === "slides" ? (P.i + 1) + "/" + nS : P.phase === "quiz" ? "Soru " + (P.qi + 1) + "/" + nQ : "Sonuç";
+    var lab = P.phase === "warm" ? "Isınma " + (P.wi + 1) + "/" + nW : P.phase === "slides" ? (P.seq[P.i].k === "c" ? "Ara kontrol" : P.seq[P.i].k === "g" ? "Birlikte yap" : (P.i + 1) + "/" + nS) : P.phase === "quiz" ? "Soru " + (P.qi + 1) + "/" + nQ : "Sonuç";
     var h = '<div class="pl-top"><button data-act="close" aria-label="Kapat">' + ic("x") + '</button><div class="pbar"><i style="width:' + pos / tot * 100 + '%"></i></div><small>' + lab + '</small></div><div class="pl-body">';
     if (P.phase === "slides") {
-      var s = P.l.slides[P.i];
-      h += '<div class="slide"><span class="tag">' + esc(P.l.title) + "</span><h2>" + esc(s.h) + "</h2>" + (s.p ? '<p class="sp">' + esc(s.p) + "</p>" : "") + '<div class="vis">' + slideVisual(s, col) + "</div></div>";
-      h += '</div><div class="pl-foot"><button class="btn ghost" data-act="prev"' + (P.i ? "" : " disabled") + ">" + ic("back") + 'Geri</button><button class="btn" data-act="next">' + (P.i === nS - 1 ? "Teste geç" : "İleri") + ic("arrow") + "</button></div>";
+      var it = P.seq[P.i], last = P.i === nS - 1, nxt = last ? "Teste geç" : "İleri";
+      if (it.k === "s") {
+        var s = it.s;
+        h += '<div class="slide"><span class="tag">' + esc(P.l.title) + "</span><h2>" + esc(s.h) + "</h2>" + (s.p ? '<p class="sp">' + esc(s.p) + "</p>" : "") + '<div class="vis">' + slideVisual(s, col) + "</div></div>";
+        h += '</div><div class="pl-foot"><button class="btn ghost" data-act="prev"' + (P.i ? "" : " disabled") + ">" + ic("back") + 'Geri</button><button class="btn" data-act="next">' + nxt + ic("arrow") + "</button></div>";
+      } else if (it.k === "c") {
+        var A = P.ans["c" + P.i];
+        h += renderQ({ q: it.q }, "c" + P.i, "Ara kontrol") + '</div><div class="pl-foot">' + (A ? '<button class="btn wide" data-act="next">' + nxt + ic("arrow") + "</button>" : '<span class="muted small center wide">Az önce gördüğünü hatırla</span>') + "</div>";
+      } else {
+        if (!it.op) it.op = mkOP(it.it, it.kind);
+        OP = it.op;
+        h += '<div class="slide"><span class="tag">' + ic("users") + 'Birlikte yap</span>' + renderOP(OP) + (OP.res == null ? '<p class="muted small">Takılırsan İpucu\'na bas; bu adım puana sayılmaz.</p>' : "") + '</div></div><div class="pl-foot">' + opFoot(OP, "next", nxt) + "</div>";
+      }
     } else if (P.phase === "warm" || P.phase === "quiz") {
       var c = curQ(), A = P.ans[c.key], isW = c.it.q.k === "w";
       if (P.phase === "warm" && P.wi === 0 && !A) h += '<p class="warm-note">' + ic("refresh") + "Derse başlamadan önce geçmiş derslerden " + nW + " soru. Hatırlamaya çalışmak, unutmayı en çok yavaşlatan şeydir.</p>";
@@ -552,12 +568,17 @@
     } else {
       var sc = lessonScore(), pct = sc / nQ, pass = pct >= PASS, mins = Math.max(1, Math.round((Date.now() - P.t0) / 60000));
       h += '<div class="slide result">' + ring(pct, pass ? "#2e9e6a" : "#e3a018", 140, Math.round(pct * 100) + "%") + "<h2>" + (P.kind === "review" ? "Tekrar tamam" : pass ? "Ders tamamlandı" : "Biraz daha tekrar") + "</h2><p>" + (Math.round(sc * 10) / 10) + "/" + nQ + " puan · " + mins + " dk" + (P.kind === "lesson" && !pass ? ". Geçmek için %80 gerekiyor. Dersi istediğin zaman tekrar açabilirsin; yanlış soruların yarın tekrar karşına çıkacak." : "") + "</p>";
+      var prc = P.seq.filter(function (x) { return x.k !== "s"; }), pok = P.seq.reduce(function (acc, x, i) { return acc + (x.k === "c" ? ((P.ans["c" + i] || {}).pts || 0) : x.k === "g" ? ((x.op || {}).pts || 0) : 0); }, 0);
+      if (prc.length) h += '<p class="muted small">Alıştırma: ' + (Math.round(pok * 10) / 10) + "/" + prc.length + "</p>";
       if (P.warm.length) { var wsc = P.warm.reduce(function (a, x, k) { return a + ((P.ans["w" + k] || {}).pts || 0); }, 0); h += '<p class="muted small">Isınma: ' + wsc + "/" + P.warm.length + "</p>"; }
       if (P.l.task) h += '<div class="task"><span class="tag">' + ic("flag") + "Bugünkü görev</span><p>" + esc(P.l.task) + '</p><label class="chk"><input type="checkbox" id="taskdone"' + (S.tasks[P.lid] ? " checked" : "") + "><span>Görevi yaptım (yarın da işaretleyebilirsin)</span></label></div>";
       h += '</div></div><div class="pl-foot"><button class="btn wide" data-act="finish">Kaydet ve kapat</button></div>';
     }
+    var key = P.phase + ":" + P.wi + ":" + P.i + ":" + P.qi;
+    el.classList.toggle("noanim", el.dataset.k === key); el.dataset.k = key;
+    var keep = el.dataset.k2 === key ? (el.querySelector(".pl-body") || {}).scrollTop : 0; el.dataset.k2 = key;
     el.innerHTML = h;
-    el.querySelector(".pl-body").scrollTop = 0;
+    el.querySelector(".pl-body").scrollTop = keep || 0;
   }
   function lessonScore() { return P.qs.reduce(function (a, x, k) { return a + ((P.ans["q" + k] || {}).pts || 0); }, 0); }
   function finishPlayer() {
@@ -655,6 +676,205 @@
     el.innerHTML = '<div class="mbar"><i style="width:' + pr * 100 + '%"></i></div><div class="mrow"><button data-act="aback" aria-label="15 sn geri">' + ic("rew") + '</button><button data-ep="' + esc(curEp.id) + '" class="mpp" aria-label="Oynat/Durdur">' + ic(AU && !AU.paused ? "pause" : "play") + '</button><button data-act="afwd" aria-label="30 sn ileri">' + ic("fwd") + '</button><div class="mt"><b>' + esc(curEp.t) + "</b><small>" + esc(curEp.show) + '</small></div><button data-act="arate" class="rt">' + String(rate).replace(".", ",") + "×</button></div>";
   }
 
+  /* ---------- oyunlar: ortak ---------- */
+  var GM = window.GAMES || { satz: [], sql: [], cw: [] };
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function srsStep(r, pts) {
+    r = r || { b: 0, due: TODAY };
+    if (pts >= 1) { r.b = Math.min(r.b + 1, INT.length - 1); r.due = addDays(TODAY, INT[r.b]); }
+    else if (pts >= 0.5) r.due = addDays(TODAY, 1);
+    else { r.b = 0; r.due = addDays(TODAY, 1); }
+    return r;
+  }
+  function gUpdate(kind, id, pts) { S.gs[kind] = S.gs[kind] || {}; S.gs[kind][id] = srsStep(S.gs[kind][id], pts); }
+  function pickItems(kind, bank, n) {
+    var gs = S.gs[kind] || {};
+    var due = bank.filter(function (x) { return gs[x.id] && gs[x.id].due <= TODAY; }), un = bank.filter(function (x) { return !gs[x.id]; }), rest = bank.filter(function (x) { return gs[x.id] && gs[x.id].due > TODAY; });
+    return shuffle(due).concat(shuffle(un), shuffle(rest)).slice(0, n);
+  }
+
+  /* ---------- sıralama bulmacası (Satzbau + SQL yapbozu) ---------- */
+  var OP = null;
+  function mkOP(item, kind) {
+    var toks = kind === "satz" ? item.w.slice() : item.lines.concat(item.x || []);
+    return { item: item, kind: kind, toks: toks, n: kind === "satz" ? item.w.length : item.lines.length, pool: shuffle(toks.map(function (_, i) { return i; })), picked: [], res: null, hints: 0 };
+  }
+  function opTarget(o) { return o.kind === "satz" ? o.item.w : o.item.lines; }
+  function opJoin(o, arr) { return arr.join(o.kind === "satz" ? " " : "\n"); }
+  function opCheck(o) {
+    var ans = opJoin(o, o.picked.map(function (i) { return o.toks[i]; }));
+    var sols = [opJoin(o, opTarget(o))].concat((o.item.alt || []).map(function (a) { return opJoin(o, a); }));
+    o.res = sols.indexOf(ans) >= 0;
+    o.pts = o.res ? (o.hints ? 0.5 : 1) : 0;
+  }
+  function opHint(o) {
+    var tg = opTarget(o), k = 0;
+    while (k < o.picked.length && o.toks[o.picked[k]] === tg[k]) k++;
+    o.picked = o.picked.slice(0, k);
+    if (k >= tg.length) return;
+    for (var i = 0; i < o.toks.length; i++) if (o.picked.indexOf(i) < 0 && o.toks[i] === tg[k]) { o.picked.push(i); break; }
+    o.hints++;
+  }
+  function renderOP(o) {
+    var it = o.item, isS = o.kind === "satz", cls = isS ? "s" : "q", h = "";
+    h += "<h2>" + esc(isS ? "„" + it.tr + "”" : it.task) + '</h2><p class="sp">' + (isS ? "Bu anlamdaki Almanca cümleyi kelimelere dokunarak doğru sıraya diz." : "Doğru satırları doğru sırayla seç. Aralarında yanlış satırlar da var.") + "</p>";
+    h += '<div class="op-ans ' + cls + (o.res === true ? " ok" : o.res === false ? " no" : "") + '">' + (o.picked.length ? o.picked.map(function (i, k) { return '<button data-opu="' + k + '" class="tk"' + (o.res != null ? " disabled" : "") + ">" + esc(o.toks[i]) + "</button>"; }).join("") : '<span class="ph">' + (isS ? "Kelimelere dokun…" : "Satırlara dokun…") + "</span>") + "</div>";
+    if (o.res == null) h += '<div class="op-pool ' + cls + '">' + o.pool.map(function (i) { return o.picked.indexOf(i) >= 0 ? "" : '<button data-opp="' + i + '" class="tk">' + esc(o.toks[i]) + "</button>"; }).join("") + "</div>";
+    else {
+      h += '<div class="expl ' + (o.res ? "ok" : "no") + '"><b>' + (o.res ? (o.hints ? "Doğru (ipucuyla)." : "Doğru.") : "Doğrusu:") + "</b>";
+      if (!o.res) h += isS ? ' <span class="sol">' + esc(it.w.join(" ")) + "</span>" : '<pre class="v-code">' + hl(it.lines.join("\n")) + "</pre>";
+      h += (it.e ? "<p>" + esc(it.e) + "</p>" : "") + "</div>";
+    }
+    return h;
+  }
+  function opFoot(o, nextAct, nextLabel) {
+    if (o.res == null) return '<button class="btn ghost" data-act="ophint">' + ic("bulb") + 'İpucu</button><button class="btn" data-act="opcheck"' + (o.picked.length === o.n ? "" : " disabled") + ">Kontrol et</button>";
+    return '<button class="btn wide" data-act="' + nextAct + '">' + nextLabel + ic("arrow") + "</button>";
+  }
+
+  /* ---------- bulmaca (Kreuzworträtsel) ---------- */
+  function nz(s) { return String(s || "").toUpperCase().replace(/Ä/g, "AE").replace(/Ö/g, "OE").replace(/Ü/g, "UE").replace(/ß/g, "SS").replace(/[^A-Z]/g, ""); }
+  function genCW(list) {
+    var N = 19, g = [], pl = [];
+    for (var i = 0; i < N; i++) { g.push([]); for (var j = 0; j < N; j++) g[i].push(null); }
+    function can(w, r, c, d) {
+      var dr = d ? 1 : 0, dc = d ? 0 : 1, L = w.length, er = r + dr * (L - 1), ec = c + dc * (L - 1), cross = 0;
+      if (r < 0 || c < 0 || er >= N || ec >= N) return -1;
+      var br = r - dr, bc = c - dc, ar = er + dr, ac = ec + dc;
+      if (br >= 0 && bc >= 0 && g[br][bc]) return -1;
+      if (ar < N && ac < N && g[ar][ac]) return -1;
+      for (var k = 0; k < L; k++) {
+        var rr = r + dr * k, cc = c + dc * k, cell = g[rr][cc];
+        if (cell) { if (cell.ch !== w[k] || cell.d[d]) return -1; cross++; }
+        else {
+          var a1 = rr + dc, b1 = cc + dr, a2 = rr - dc, b2 = cc - dr;
+          if (a1 < N && b1 < N && g[a1][b1]) return -1;
+          if (a2 >= 0 && b2 >= 0 && g[a2][b2]) return -1;
+        }
+      }
+      return cross;
+    }
+    function put(it, r, c, d) {
+      var w = it.w;
+      for (var k = 0; k < w.length; k++) { var rr = r + (d ? k : 0), cc = c + (d ? 0 : k); if (!g[rr][cc]) g[rr][cc] = { ch: w[k], d: [0, 0] }; g[rr][cc].d[d] = 1; }
+      pl.push({ it: it, r: r, c: c, d: d });
+    }
+    var ws = list.slice().sort(function (a, b) { return b.w.length - a.w.length; });
+    put(ws[0], Math.floor(N / 2), Math.floor((N - ws[0].w.length) / 2), 0);
+    ws.slice(1).forEach(function (it) {
+      var w = it.w, cands = [];
+      for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+        var cell = g[r][c]; if (!cell) continue;
+        for (var k = 0; k < w.length; k++) if (w[k] === cell.ch) {
+          [0, 1].forEach(function (d) { var sr = d ? r - k : r, sc = d ? c : c - k, x = can(w, sr, sc, d); if (x > 0) cands.push([sr, sc, d, x]); });
+        }
+      }
+      if (cands.length) { var ch = shuffle(cands).sort(function (a, b) { return b[3] - a[3]; })[0]; put(it, ch[0], ch[1], ch[2]); }
+    });
+    var r0 = N, c0 = N, r1 = 0, c1 = 0;
+    for (var a = 0; a < N; a++) for (var b = 0; b < N; b++) if (g[a][b]) { r0 = Math.min(r0, a); c0 = Math.min(c0, b); r1 = Math.max(r1, a); c1 = Math.max(c1, b); }
+    var words = pl.map(function (p) { return { id: p.it.id, w: p.it.w, c: p.it.c, a: p.it.a, r: p.r - r0, col: p.c - c0, d: p.d, solved: false, rev: [], tries: 0 }; });
+    words.sort(function (x, y) { return x.r - y.r || x.col - y.col; });
+    var num = 0, nm = {};
+    words.forEach(function (w) { var k = w.r + "_" + w.col; if (!nm[k]) nm[k] = ++num; w.n = nm[k]; });
+    return { rows: r1 - r0 + 1, cols: c1 - c0 + 1, words: words, nm: nm, sel: null, done: false };
+  }
+  function cwCells(w) { var a = []; for (var k = 0; k < w.w.length; k++) a.push([w.r + (w.d ? k : 0), w.col + (w.d ? 0 : k)]); return a; }
+  function newCW() {
+    var bank = GM.cw, best = null;
+    for (var t = 0; t < 15; t++) {
+      var pick = pickItems("cw", bank, 10), cw = genCW(pick);
+      if (cw.rows <= 13 && cw.cols <= 12 && (!best || cw.words.length > best.words.length)) best = cw;
+      if (best && best.words.length >= 8) break;
+    }
+    return best || genCW(pickItems("cw", bank, 6));
+  }
+  function renderCW(cw) {
+    var map = {};
+    cw.words.forEach(function (w, wi) { cwCells(w).forEach(function (p, k) { var key = p[0] + "_" + p[1]; map[key] = map[key] || { ch: w.w[k], show: false, ws: [] }; map[key].ws.push(wi); if (w.solved || w.rev.indexOf(k) >= 0 || cw.done) map[key].show = true; }); });
+    var sel = cw.sel != null ? cwCells(cw.words[cw.sel]).map(function (p) { return p[0] + "_" + p[1]; }) : [];
+    var sz = Math.min(34, Math.floor(340 / cw.cols));
+    var h = '<div class="cw" style="grid-template-columns:repeat(' + cw.cols + "," + sz + "px);grid-auto-rows:" + sz + 'px">';
+    for (var r = 0; r < cw.rows; r++) for (var c = 0; c < cw.cols; c++) {
+      var key = r + "_" + c, m = map[key];
+      if (!m) { h += "<span></span>"; continue; }
+      var solved = m.ws.some(function (i) { return cw.words[i].solved; });
+      h += '<button class="cc' + (sel.indexOf(key) >= 0 ? " sel" : "") + (solved ? " ok" : "") + '" data-cwc="' + m.ws[0] + '" style="font-size:' + Math.round(sz * 0.5) + 'px">' + (cw.nm[key] ? "<i>" + cw.nm[key] + "</i>" : "") + (m.show ? m.ch : "") + "</button>";
+    }
+    h += "</div>";
+    [[0, "Yatay"], [1, "Dikey"]].forEach(function (D) {
+      var ws = cw.words.map(function (w, i) { return [w, i]; }).filter(function (x) { return x[0].d === D[0]; });
+      if (!ws.length) return;
+      h += '<h4 class="cwh">' + D[1] + '</h4><ul class="cwl">' + ws.map(function (x) { var w = x[0]; return '<li><button data-cwc="' + x[1] + '" class="' + (w.solved ? "ok" : "") + (cw.sel === x[1] ? " sel" : "") + '"><b>' + w.n + "</b>" + esc(w.c) + ' <em>(' + esc(w.a) + ", " + w.w.length + ")</em>" + (w.solved ? ic("check") : "") + "</button></li>"; }).join("") + "</ul>";
+    });
+    return h;
+  }
+  function cwFoot(cw) {
+    if (cw.done) return '<button class="btn wide" data-act="gfinish">Sonucu kaydet</button>';
+    if (cw.sel == null) return '<span class="muted small center wide">Bir ipucuna ya da kutuya dokun</span><button class="btn ghost" data-act="cwend">Bitir</button>';
+    var w = cw.words[cw.sel];
+    return '<div class="cwin"><small><b>' + w.n + (w.d ? " Dikey" : " Yatay") + ":</b> " + esc(w.c) + " (" + esc(w.a) + ", " + w.w.length + ' harf)</small><div class="row2"><input id="cwi" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Yaz…"><button class="btn sm ghost" data-act="cwrev" aria-label="Harf aç">' + ic("bulb") + '</button><button class="btn sm" data-act="cwok">Yerleştir</button></div></div>';
+  }
+
+  /* ---------- oyun oturumu ---------- */
+  var G = null;
+  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Kreuzworträtsel", "pivot", "#7a52c7", "Controlling kelimeleriyle bulmaca"] };
+  function openGame(kind) {
+    G = { kind: kind, ix: 0, t0: Date.now(), pts: [] };
+    if (kind === "cw") { G.cw = newCW(); }
+    else { G.items = pickItems(kind, GM[kind], kind === "satz" ? 6 : 4); OP = mkOP(G.items[0], kind); }
+    drawGame();
+  }
+  function drawGame() {
+    var inf = GINFO[G.kind], el = document.getElementById("player");
+    if (!el) { el = document.createElement("div"); el.id = "player"; document.body.appendChild(el); }
+    el.style.setProperty("--c", inf[2]); document.body.classList.add("noscroll");
+    var tot = G.kind === "cw" ? G.cw.words.length : G.items.length, pos = G.kind === "cw" ? G.cw.words.filter(function (w) { return w.solved; }).length : G.ix;
+    var h = '<div class="pl-top"><button data-act="gclose" aria-label="Kapat">' + ic("x") + '</button><div class="pbar"><i style="width:' + (G.res ? 100 : pos / tot * 100) + '%"></i></div><small>' + (G.res ? "Sonuç" : G.kind === "cw" ? pos + "/" + tot : (G.ix + 1) + "/" + tot) + '</small></div><div class="pl-body"><div class="slide"><span class="tag">' + ic(inf[1]) + inf[0] + "</span>";
+    var foot = "";
+    if (G.res) {
+      var sc = G.pts.reduce(function (a, b) { return a + b; }, 0), pct = sc / Math.max(1, G.pts.length);
+      h += '<div class="result">' + ring(pct, pct >= 0.8 ? "#2e9e6a" : "#e3a018", 130, Math.round(pct * 100) + "%") + "<h2>" + (pct >= 0.8 ? "Harika" : pct >= 0.5 ? "İyi gidiyor" : "Tekrar edelim") + "</h2><p>" + (Math.round(sc * 10) / 10) + "/" + G.pts.length + " puan · " + Math.max(1, Math.round((Date.now() - G.t0) / 60000)) + " dk. Zorlandığın öğeler yakında yine karşına çıkacak.</p></div>";
+      foot = '<button class="btn ghost" data-act="gclose">Kapat</button><button class="btn" data-act="gagain">Bir tur daha</button>';
+    } else if (G.kind === "cw") { h += renderCW(G.cw); foot = cwFoot(G.cw); }
+    else { h += renderOP(OP); foot = opFoot(OP, "gnext", G.ix === G.items.length - 1 ? "Sonuç" : "Sonraki"); }
+    h += '</div></div><div class="pl-foot">' + foot + "</div>";
+    var key = G.kind + ":" + (G.res ? "r" : G.ix);
+    el.classList.toggle("noanim", el.dataset.k === key); el.dataset.k = key;
+    var keep = el.classList.contains("noanim") ? (el.querySelector(".pl-body") || {}).scrollTop : 0;
+    el.innerHTML = h;
+    el.querySelector(".pl-body").scrollTop = keep || 0;
+    var inp = document.getElementById("cwi"); if (inp) inp.focus();
+  }
+  function finishGame() {
+    if (G.kind === "cw") G.cw.words.forEach(function (w) { var p = w.solved ? (w.rev.length ? 0.5 : 1) : 0; G.pts.push(p); gUpdate("cw", w.id, p); });
+    var sc = G.pts.reduce(function (a, b) { return a + b; }, 0);
+    S.gplay.push({ date: TODAY, g: G.kind, sc: Math.round(sc * 10) / 10, tot: G.pts.length, min: Math.max(1, Math.round((Date.now() - G.t0) / 60000)) });
+    G.res = true; save(); drawGame();
+  }
+  function closeGame() { var el = document.getElementById("player"); if (el) el.remove(); document.body.classList.remove("noscroll"); G = null; OP = null; render(); }
+  function gamesCard() {
+    return '<h2 class="sec">Oyun köşesi</h2><div class="games">' + Object.keys(GINFO).map(function (k) {
+      var inf = GINFO[k], pl = S.gplay.filter(function (x) { return x.g === k; }), last = pl[pl.length - 1];
+      return '<button class="gtile" data-game="' + k + '" style="--c:' + inf[2] + '">' + ic(inf[1], "big") + "<b>" + inf[0] + "</b><small>" + inf[3] + "</small><em>" + (last ? pl.length + " tur · son %" + Math.round(last.sc / Math.max(1, last.tot) * 100) : "Yeni") + "</em></button>";
+    }).join("") + "</div>";
+  }
+
+  /* ---------- derste ara kontrol ---------- */
+  function genCheck(s) {
+    if (!s) return null;
+    var q = null, o = [], a = 0;
+    function mk(qt, right, wrongs) { wrongs = shuffle(wrongs.filter(function (x, i, arr) { return x && x !== right && arr.indexOf(x) === i; })).slice(0, 3); if (!wrongs.length) return null; o = shuffle([right].concat(wrongs)); return { q: qt, o: o, a: o.indexOf(right), e: "Az önceki slayttan." }; }
+    if (s.t === "phrases" && s.items.length >= 3) { var p = s.items[Math.floor(Math.random() * s.items.length)]; return mk("„" + p[0] + "” ne demek?", p[1], s.items.map(function (x) { return x[1]; })); }
+    if (s.t === "table" && s.rows.length >= 3 && s.head.length >= 2) { var r = s.rows[Math.floor(Math.random() * s.rows.length)]; return mk(s.head[0] + ": „" + r[0] + "” → " + s.head[1] + "?", r[1], s.rows.map(function (x) { return x[1]; })); }
+    if (s.t === "flow" && s.steps.length >= 3) { var k = 1 + Math.floor(Math.random() * (s.steps.length - 1)); return mk("„" + s.steps[k - 1][0] + "” adımından sonra hangisi gelir?", s.steps[k][0], s.steps.map(function (x) { return x[0]; })); }
+    if (s.t === "compare") return mk("Hangisi önerilen kullanım?", s.good[1], [s.bad[1]]);
+    if (s.t === "cards" && s.items.length >= 3) { var cs = s.items.filter(function (x) { return x[2]; }); if (cs.length >= 3) { var cd = cs[Math.floor(Math.random() * cs.length)]; return mk("„" + cd[2] + "” hangisine ait?", cd[1], cs.map(function (x) { return x[1]; })); } }
+    if (s.t === "formula" && s.parts.length >= 3) { var fp = s.parts[Math.floor(Math.random() * s.parts.length)]; return mk("„" + fp[1] + "” hangi parça?", fp[0], s.parts.map(function (x) { return x[0]; })); }
+    if (s.t === "bars" && s.items.length >= 3) { var mx = s.items.slice().sort(function (x, y) { return y[1] - x[1]; })[0]; return mk("Grafikte en yüksek değer hangisindeydi?", mx[0], s.items.map(function (x) { return x[0]; })); }
+    return q;
+  }
+
   /* ---------- fikir süzgeci ---------- */
   function openIdea() {
     var act = S.projects.filter(function (p) { return p.status === "aktif" && p.cat !== "aile"; });
@@ -721,7 +941,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -736,13 +956,30 @@
     if (d.ans != null && P) { var c = curQ(), k = +d.ans; if (P.ans[c.key]) return; P.ans[c.key] = { v: k, pts: k === c.it.q.a ? 1 : 0 }; return drawPlayer(); }
     if (d.rate != null && P) { P.ans[curQ().key].pts = +d.rate; return drawPlayer(); }
     if (d.ep) return playEp(d.ep);
+    if (d.game) return openGame(d.game);
+    if (d.opp != null && OP && OP.res == null) { OP.picked.push(+d.opp); return P ? drawPlayer() : drawGame(); }
+    if (d.opu != null && OP && OP.res == null) { OP.picked.splice(+d.opu, 1); return P ? drawPlayer() : drawGame(); }
+    if (d.cwc != null && G && G.kind === "cw" && !G.cw.done) { var ci = +d.cwc, cw = G.cw; if (cw.words[ci].solved) return; if (cw.sel === ci) { var alt = cw.words.findIndex(function (w, j) { return j !== ci && !w.solved && cwCells(w).some(function (p) { return cwCells(cw.words[ci]).some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }); if (alt >= 0) ci = alt; } cw.sel = ci; return drawGame(); }
     if (d.note) return openNote(d.note);
     if (d.sec != null) { var se = document.getElementById("ns-" + d.sec); if (se) se.scrollIntoView({ behavior: "smooth" }); return; }
     if (d.nm) { newsMode = d.nm; return render(); }
     if (d.bi != null) { bulIx = +d.bi; return render(); }
     if (d.pc) { podCat = d.pc; return render(); }
     switch (d.act) {
-      case "next": if (P.i < P.l.slides.length - 1) P.i++; else P.phase = "quiz"; return drawPlayer();
+      case "next": if (P.i < P.seq.length - 1) P.i++; else P.phase = "quiz"; return drawPlayer();
+      case "opcheck": if (OP) { opCheck(OP); if (G && !P) { G.pts.push(OP.pts); gUpdate(G.kind, OP.item.id, OP.pts); } } return P ? drawPlayer() : drawGame();
+      case "ophint": if (OP) opHint(OP); return P ? drawPlayer() : drawGame();
+      case "gnext": G.ix++; if (G.ix >= G.items.length) return finishGame(); OP = mkOP(G.items[G.ix], G.kind); return drawGame();
+      case "gfinish": return finishGame();
+      case "gclose": return closeGame();
+      case "gagain": var gk = G.kind; return openGame(gk);
+      case "cwend": G.cw.done = true; G.cw.sel = null; return drawGame();
+      case "cwrev": var cw1 = G.cw, w1 = cw1.words[cw1.sel]; for (var q1 = 0; q1 < w1.w.length; q1++) if (w1.rev.indexOf(q1) < 0) { w1.rev.push(q1); break; } if (w1.rev.length >= w1.w.length) w1.solved = true; return drawGame();
+      case "cwok":
+        var cw2 = G.cw, w2 = cw2.words[cw2.sel], v2 = val("cwi");
+        if (nz(v2) === nz(w2.w)) { w2.solved = true; cw2.sel = null; if (cw2.words.every(function (w) { return w.solved; })) cw2.done = true; toast("Doğru: " + w2.a + " " + w2.w.charAt(0) + w2.w.slice(1).toLowerCase()); }
+        else { w2.tries++; toast(nz(v2).length !== nz(w2.w).length ? "Harf sayısı tutmuyor (" + w2.w.length + ")" : "Olmadı, tekrar dene"); }
+        return drawGame();
       case "prev": if (P.i > 0) P.i--; return drawPlayer();
       case "nextq":
         if (P.phase === "warm") { if (P.wi < P.warm.length - 1) P.wi++; else P.phase = "slides"; }
@@ -780,6 +1017,7 @@
     }
   });
   function load2() { var d = defaults(); Object.keys(d).forEach(function (k) { if (S[k] == null) S[k] = d[k]; }); }
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.id === "cwi") { e.preventDefault(); var b = document.querySelector('[data-act="cwok"]'); if (b) b.click(); } });
   document.addEventListener("change", function (e) {
     var t = e.target;
     if (t.dataset.plan != null) { S.plan[t.dataset.plan] = t.value; save(); toast("Plan güncellendi"); }
@@ -788,11 +1026,11 @@
   });
   /* kaydırma ile slayt geçişi */
   var tx = null;
-  document.addEventListener("touchstart", function (e) { if (P && P.phase === "slides" && e.target.closest(".pl-body")) tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener("touchstart", function (e) { if (P && P.phase === "slides" && P.seq[P.i].k === "s" && e.target.closest(".pl-body")) tx = e.touches[0].clientX; }, { passive: true });
   document.addEventListener("touchend", function (e) {
     if (tx == null || !P) return; var dx = e.changedTouches[0].clientX - tx; tx = null;
     if (Math.abs(dx) < 60 || e.target.closest(".v-tbl,.v-code")) return;
-    if (dx < 0) { if (P.i < P.l.slides.length - 1) P.i++; else P.phase = "quiz"; } else if (P.i > 0) P.i--;
+    if (dx < 0) { if (P.i < P.seq.length - 1) P.i++; else P.phase = "quiz"; } else if (P.i > 0) P.i--;
     drawPlayer();
   }, { passive: true });
 

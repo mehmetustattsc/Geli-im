@@ -17,6 +17,11 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 ## Ders notları
 - `js/notes.js` → `NOTES[alan]`: bölümler ve bloklar (p, list, tip + slayt görselleri). Yol sekmesinden açılır.
 
+## Oyunlar ve derste alıştırma
+- `js/games.js` → `GAMES.satz` (Satzbau), `GAMES.sql` (SQL yapbozu, `x` = çeldirici satırlar), `GAMES.cw` (bulmaca kelimeleri). `l` alanı ders kimliği: o dersin "Birlikte yap" adımında da kullanılır.
+- Oyun öğeleri kendi aralıklı tekrarını tutar (`S.gs[oyun][id]`); oynanan turlar `S.gplay`.
+- Derslerde her 2 slayttan sonra slayt içeriğinden otomatik "Ara kontrol" sorusu üretilir (`genCheck`), testten önce 2 "Birlikte yap" görevi gelir (ipucu var, puana sayılmaz).
+
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.
 - Yazılı sorular `WRITE_Q` (content.js sonunda): kullanıcı yazar, örnek cevap + anahtar kelimelerle karşılaştırıp kendini puanlar (1 / 0,5 / 0).

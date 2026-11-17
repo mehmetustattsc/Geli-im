@@ -18,7 +18,7 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 - `js/notes.js` → `NOTES[alan]`: bölümler ve bloklar (p, list, tip + slayt görselleri). Yol sekmesinden açılır.
 
 ## Oyunlar ve derste alıştırma
-- `js/games.js` → `GAMES.satz` (Satzbau), `GAMES.sql` (SQL yapbozu, `x` = çeldirici satırlar), `GAMES.cw` (İsveç bulmacası kelimeleri: w, d = Almanca ipucu, c = Türkçe anlam, a = artikel; 8×9 sabit ızgara, boş hücreler mavi, ipuçları ızgara içinde, harfler alttaki taşlardan). `l` alanı ders kimliği: o dersin "Birlikte yap" adımında da kullanılır.
+- `js/games.js` → `GAMES.satz` (Satzbau), `GAMES.sql` (SQL yapbozu, `x` = çeldirici satırlar), `GAMES.cw` (İsveç bulmacası: w, d = Almanca ipucu, c = Türkçe anlam, a = artikel; 8×9 dolu ızgara, yuvalar tam kelime ya da kelime parçasıyla doldurulur (ipucu "Ü…RSICHT"); harfler alttaki taşlardan, ipuçları ızgara içinde, harfler alttaki taşlardan). `l` alanı ders kimliği: o dersin "Birlikte yap" adımında da kullanılır.
 - Oyun öğeleri kendi aralıklı tekrarını tutar (`S.gs[oyun][id]`); oynanan turlar `S.gplay`.
 - Derslerde her 2 slayttan sonra slayt içeriğinden otomatik "Ara kontrol" sorusu üretilir (`genCheck`), testten önce 2 "Birlikte yap" görevi gelir (ipucu var, puana sayılmaz).
 

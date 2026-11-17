@@ -734,70 +734,71 @@
 
   /* ---------- İsveç bulmacası (Schwedenrätsel) ---------- */
   function nz(s) { return String(s || "").toUpperCase().replace(/Ä/g, "AE").replace(/Ö/g, "OE").replace(/Ü/g, "UE").replace(/ß/g, "SS").replace(/[^A-Z]/g, ""); }
-  function genCW(list, R, C) {
+  function genCW(bank, R, C) {
     R = R || 9; C = C || 8;
-    var g = [], pl = [], clue = {};
-    for (var i = 0; i < R; i++) { g.push([]); for (var j = 0; j < C; j++) g[i].push(null); }
-    function can(w, r, c, d) {
-      var dr = d ? 1 : 0, dc = d ? 0 : 1, L = w.length, er = r + dr * (L - 1), ec = c + dc * (L - 1), cross = 0;
-      if (d === 0 && (c < 1 || r < 0)) return -1;
-      if (d === 1 && (r < 1 || c < 0)) return -1;
-      if (er >= R || ec >= C) return -1;
-      var br = r - dr, bc = c - dc, ar = er + dr, ac = ec + dc;
-      if (g[br][bc]) return -1;
-      var ck = clue[br + "_" + bc]; if (ck && ck[d]) return -1;
-      if (ar < R && ac < C && g[ar][ac]) return -1;
-      for (var k = 0; k < L; k++) {
-        var rr = r + dr * k, cc = c + dc * k, cell = g[rr][cc];
-        if (clue[rr + "_" + cc]) return -1;
-        if (cell) { if (cell.ch !== w[k] || cell.d[d]) return -1; cross++; }
-        else {
-          var a1 = rr + dc, b1 = cc + dr, a2 = rr - dc, b2 = cc - dr;
-          if (a1 < R && b1 < C && g[a1][b1]) return -1;
-          if (a2 >= 0 && b2 >= 0 && g[a2][b2]) return -1;
+    var cand = {}, maxL = 7;
+    bank.forEach(function (it) {
+      var W = it.w, n = W.length;
+      if (n <= maxL) (cand[n] = cand[n] || []).push({ ans: W, full: true, it: it });
+      for (var L = 2; L <= Math.min(maxL, n - 2); L++) for (var p = 0; p + L <= n; p++) (cand[L] = cand[L] || []).push({ ans: W.substr(p, L), full: false, it: it, pos: p });
+    });
+    for (var tries = 0; tries < 25; tries++) {
+      var T = [];
+      for (var r = 0; r < R; r++) { T.push([]); for (var c = 0; c < C; c++) T[r].push(r === 0 || c === 0 ? "C" : "L"); }
+      for (r = 1; r < R; r++) if (Math.random() < 0.75) T[r][2 + Math.floor(Math.random() * (C - 4))] = "C";
+      for (c = 1; c < C; c++) {
+        var run = 0, longest = 0; for (r = 1; r < R; r++) { run = T[r][c] === "L" ? run + 1 : 0; longest = Math.max(longest, run); }
+        if (longest > maxL || (longest > 5 && Math.random() < 0.6)) { var rr = 3 + Math.floor(Math.random() * (R - 5)); if ((c === 1 || T[rr][c - 1] !== "C") && (c + 1 >= C || T[rr][c + 1] !== "C")) T[rr][c] = "C"; }
+      }
+      var slots = [], cover = {};
+      for (r = 0; r < R; r++) for (c = 0; c < C; c++) {
+        if (T[r][c] !== "C") continue;
+        [[0, 1, 0], [1, 0, 1]].forEach(function (D) {
+          var len = 0; while (r + D[0] * (len + 1) < R && c + D[1] * (len + 1) < C && T[r + D[0] * (len + 1)][c + D[1] * (len + 1)] === "L") len++;
+          if (len >= 2) { var sl = { r: r + D[0], c: c + D[1], d: D[2], L: len, cells: [] }; for (var k = 0; k < len; k++) { var key = (sl.r + D[0] * k) + "_" + (sl.c + D[1] * k); sl.cells.push(key); cover[key] = 1; } slots.push(sl); }
+        });
+      }
+      var bad = false;
+      for (r = 1; r < R && !bad; r++) for (c = 1; c < C; c++) if (T[r][c] === "L" && !cover[r + "_" + c]) { bad = true; break; }
+      if (bad || slots.some(function (s) { return s.L > maxL || !cand[s.L]; })) { continue; }
+      var grid = {}, used = {}, steps = 0, asg = [];
+      var fit = function (s, a) { for (var k = 0; k < s.L; k++) { var g = grid[s.cells[k]]; if (g && g !== a.ans[k]) return false; } return true; };
+      var solve = function () {
+        if (++steps > 4000) return false;
+        var best = null, bl = null;
+        for (var i = 0; i < slots.length; i++) {
+          if (asg[i]) continue;
+          var l = cand[slots[i].L].filter(function (a) { return !used[a.it.id] && fit(slots[i], a); });
+          if (!l.length) return false;
+          if (!best || l.length < bl.length) { best = i; bl = l; }
         }
-      }
-      return cross;
+        if (best == null) return true;
+        var s = slots[best], opts = shuffle(bl).sort(function (x, y) { return (y.full ? 1 : 0) - (x.full ? 1 : 0); }).slice(0, 12);
+        for (var j = 0; j < opts.length; j++) {
+          var a = opts[j], prev = s.cells.map(function (k) { return grid[k]; });
+          s.cells.forEach(function (k, q) { grid[k] = a.ans[q]; }); used[a.it.id] = 1; asg[best] = a;
+          if (solve()) return true;
+          s.cells.forEach(function (k, q) { grid[k] = prev[q]; }); delete used[a.it.id]; asg[best] = null;
+        }
+        return false;
+      };
+      if (!solve()) { continue; }
+      var cells = {}, words = slots.map(function (s, i) {
+        var a = asg[i], it = a.it, pat = a.full ? null : it.w.slice(0, a.pos) + "…" + it.w.slice(a.pos + s.L);
+        return { id: it.id, full: a.full, w: a.ans, src: it.w, c: a.full ? it.c : it.c, dc: a.full ? it.d : pat, pat: pat, a: it.a, r: s.r, col: s.c, d: s.d, solved: false, miss: 0, hint: 0 };
+      });
+      words.forEach(function (w, wi) { cwCells(w).forEach(function (key, k) { cells[key] = cells[key] || { t: "L", ch: w.w[k], ws: [] }; cells[key].ws.push(wi); }); });
+      words.forEach(function (w, wi) { var key = (w.r - (w.d ? 1 : 0)) + "_" + (w.col - (w.d ? 0 : 1)); cells[key] = cells[key] || { t: "C", h: null, v: null }; if (w.d) cells[key].v = wi; else cells[key].h = wi; });
+      for (r = 0; r < R; r++) for (c = 0; c < C; c++) if (!cells[r + "_" + c]) cells[r + "_" + c] = { t: "C", h: null, v: null };
+      return { rows: R, cols: C, words: words, cells: cells, filled: Object.keys(grid).length, fill: {}, sel: null, done: false, lang: "de", rack: [] };
     }
-    function put(it, r, c, d) {
-      for (var k = 0; k < it.w.length; k++) { var rr = r + (d ? k : 0), cc = c + (d ? 0 : k); if (!g[rr][cc]) g[rr][cc] = { ch: it.w[k], d: [0, 0] }; g[rr][cc].d[d] = 1; }
-      var key = (r - (d ? 1 : 0)) + "_" + (c - (d ? 0 : 1)); clue[key] = clue[key] || [0, 0]; clue[key][d] = 1;
-      pl.push({ it: it, r: r, c: c, d: d });
-    }
-    var ws = shuffle(list).filter(function (x) { return x.w.length <= Math.max(R, C) - 1; });
-    var first = ws.filter(function (x) { return x.w.length <= C - 1; })[0];
-    if (!first) return null;
-    put(first, Math.floor(Math.random() * R), 1, 0);
-    var used = {}; used[first.id] = 1;
-    for (var pass = 0; pass < 2; pass++) ws.forEach(function (it) {
-      if (used[it.id]) return;
-      var w = it.w, cands = [];
-      for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
-        var cell = g[r][c]; if (!cell) continue;
-        for (var k = 0; k < w.length; k++) if (w[k] === cell.ch) [0, 1].forEach(function (d) { var sr = d ? r - k : r, sc = d ? c : c - k, x = can(w, sr, sc, d); if (x > 0) cands.push([sr, sc, d, x]); });
-      }
-      if (cands.length) { var ch = shuffle(cands).sort(function (a, b) { return b[3] - a[3]; })[0]; put(it, ch[0], ch[1], ch[2]); used[it.id] = 1; }
-    });
-    var cells = {}, filled = 0;
-    var words = pl.map(function (p) { return { id: p.it.id, w: p.it.w, c: p.it.c, dc: p.it.d, a: p.it.a, r: p.r, col: p.c, d: p.d, solved: false, miss: 0, hint: 0 }; });
-    words.forEach(function (w, wi) {
-      for (var k = 0; k < w.w.length; k++) { var key = (w.r + (w.d ? k : 0)) + "_" + (w.col + (w.d ? 0 : k)); if (!cells[key]) { cells[key] = { t: "L", ch: w.w[k], ws: [] }; filled++; } cells[key].ws.push(wi); }
-    });
-    words.forEach(function (w, wi) {
-      var key = (w.r - (w.d ? 1 : 0)) + "_" + (w.col - (w.d ? 0 : 1));
-      cells[key] = cells[key] || { t: "C", h: null, v: null };
-      if (w.d) cells[key].v = wi; else cells[key].h = wi;
-    });
-    return { rows: R, cols: C, words: words, cells: cells, filled: filled, fill: {}, sel: null, done: false, lang: "de", rack: [] };
+    return null;
   }
   function cwCells(w) { var a = []; for (var k = 0; k < w.w.length; k++) a.push((w.r + (w.d ? k : 0)) + "_" + (w.col + (w.d ? 0 : k))); return a; }
   function newCW() {
-    var best = null, pool = GM.cw.filter(function (x) { return x.w.length <= 9; });
-    var pri = pickItems("cw", pool, 12);
-    for (var t = 0; t < 150; t++) {
-      var cw = genCW(pri.concat(shuffle(pool)));
-      if (cw && (!best || cw.filled + cw.words.length * 2 > best.filled + best.words.length * 2)) best = cw;
-    }
+    var pri = pickItems("cw", GM.cw, 30), best = null;
+    for (var t = 0; t < 6 && !best; t++) best = genCW(pri.concat(shuffle(GM.cw)));
+    if (!best) best = genCW(GM.cw);
     var keys = Object.keys(best.cells).filter(function (k) { return best.cells[k].t === "L"; });
     shuffle(keys).slice(0, Math.round(keys.length * 0.22)).forEach(function (k) { best.fill[k] = 1; });
     best.words.forEach(function (w) { if (cwCells(w).every(function (k) { return best.fill[k]; })) best.fill[cwCells(w)[0]] = 0; });
@@ -824,16 +825,17 @@
     w.miss++; return false;
   }
   function fitClue(t, w, h) {
-    var raw = String(t).toUpperCase().split(/\s+/);
+    var raw = [];
+    String(t).toUpperCase().split(/\s+/).forEach(function (x) { var i = x.indexOf("…"); if (i > 0 && i < x.length - 1) { raw.push({ x: x.slice(0, i + 1) }); raw.push({ x: x.slice(i + 1), j: 1 }); } else raw.push({ x: x }); });
     for (var fs = 11; fs >= 7; fs -= 0.5) {
       var maxc = Math.floor((w - 3) / (fs * 0.64)), toks = [], lines = [];
-      raw.forEach(function (x) { while (x.length > maxc) { var cut = maxc - 1; toks.push(x.slice(0, cut) + "-"); x = x.slice(cut); } toks.push(x); });
-      toks.forEach(function (x) { var l = lines[lines.length - 1]; if (l && !/-$/.test(l) && (l + " " + x).length <= maxc) lines[lines.length - 1] = l + " " + x; else lines.push(x); });
+      raw.forEach(function (o) { var x = o.x, j = o.j; while (x.length > maxc) { toks.push({ x: x.slice(0, maxc - 1) + "-", j: j }); x = x.slice(maxc - 1); j = 1; } toks.push({ x: x, j: j }); });
+      toks.forEach(function (o) { var n = lines.length, l = lines[n - 1]; if (l != null && !/-$/.test(l) && (l + (o.j ? "" : " ") + o.x).length <= maxc) lines[n - 1] = l + (o.j ? "" : " ") + o.x; else lines.push(o.x); });
       if (lines.length * fs * 1.08 <= h - 3) return { fs: fs, html: lines.map(esc).join("<br>") };
     }
     return { fs: 7, html: esc(String(t).toUpperCase()) };
   }
-  function clueText(cw, wi) { var w = cw.words[wi]; return cw.lang === "de" ? w.dc : w.c; }
+  function clueText(cw, wi) { var w = cw.words[wi]; return w.pat || (cw.lang === "de" ? w.dc : w.c); }
   function renderCW(cw) {
     var sz = Math.min(50, Math.floor(354 / cw.cols)), sel = cw.sel != null ? cwCells(cw.words[cw.sel]) : [];
     var h = '<div class="cwtop"><div class="seg sm"><button data-cwl="de" class="' + (cw.lang === "de" ? "on" : "") + '">İpucu: Almanca</button><button data-cwl="tr" class="' + (cw.lang === "tr" ? "on" : "") + '">Türkçe</button></div></div>';
@@ -852,9 +854,9 @@
       }
     }
     h += "</div>";
-    if (cw.sel != null) { var w = cw.words[cw.sel]; h += '<p class="cwsel"><b>' + (w.d ? "↓ " : "→ ") + esc(cw.lang === "de" ? w.dc : w.c) + "</b> · " + w.w.length + " harf" + (cw.lang === "de" ? ' · <span class="muted">' + esc(w.c) + "</span>" : "") + "</p>"; }
+    if (cw.sel != null) { var w = cw.words[cw.sel]; h += '<p class="cwsel"><b>' + (w.d ? "↓ " : "→ ") + esc(w.pat ? w.pat : cw.lang === "de" ? w.dc : w.c) + "</b> · " + w.w.length + " harf · " + (w.pat ? '<span class="muted">boşluğu doldur (' + esc(w.c) + ")</span>" : cw.lang === "de" ? '<span class="muted">' + esc(w.c) + "</span>" : "") + "</p>"; }
     else if (!cw.done) h += '<p class="muted small center">Bir ipucu kutusuna dokun.</p>';
-    else { h += '<div class="cwdone">' + cw.words.map(function (w) { return "<p><b>" + esc(w.a !== "-" ? w.a + " " : "") + esc(w.w.charAt(0) + w.w.slice(1).toLowerCase()) + "</b> · " + esc(w.c) + (w.solved ? "" : ' <span class="muted">(açıldı)</span>') + "</p>"; }).join("") + "</div>"; }
+    else { h += '<div class="cwdone">' + cw.words.map(function (w) { return "<p><b>" + esc(w.a !== "-" ? w.a + " " : "") + esc(w.src.charAt(0) + w.src.slice(1).toLowerCase()) + "</b> · " + esc(w.c) + (w.solved ? "" : ' <span class="muted">(açıldı)</span>') + "</p>"; }).join("") + "</div>"; }
     return h;
   }
   function cwFoot(cw) {
@@ -894,7 +896,7 @@
     var inp = document.getElementById("cwi"); if (inp) inp.focus();
   }
   function finishGame() {
-    if (G.kind === "cw") G.cw.words.forEach(function (w) { var p = w.solved ? (w.miss || w.hint ? 0.5 : 1) : 0; G.pts.push(p); gUpdate("cw", w.id, p); });
+    if (G.kind === "cw") G.cw.words.forEach(function (w) { var p = w.solved ? (w.miss || w.hint ? 0.5 : 1) : 0; G.pts.push(p); if (w.full) gUpdate("cw", w.id, p); });
     var sc = G.pts.reduce(function (a, b) { return a + b; }, 0);
     S.gplay.push({ date: TODAY, g: G.kind, sc: Math.round(sc * 10) / 10, tot: G.pts.length, min: Math.max(1, Math.round((Date.now() - G.t0) / 60000)) });
     G.res = true; save(); drawGame();
@@ -1009,7 +1011,7 @@
     if (d.cwl && G && G.kind === "cw") { G.cw.lang = d.cwl; return drawGame(); }
     if (d.rk != null && G && G.kind === "cw" && G.cw.sel != null) {
       var cwr = G.cw, t = cwr.rack[+d.rk], wsel = cwr.words[cwr.sel];
-      if (cwPlace(cwr, t.ch)) { t.used = true; if (wsel.solved) { toast("✓ " + (wsel.a !== "-" ? wsel.a + " " : "") + wsel.w.charAt(0) + wsel.w.slice(1).toLowerCase()); cwNextWord(cwr); } }
+      if (cwPlace(cwr, t.ch)) { t.used = true; if (wsel.solved) { toast("✓ " + (wsel.a !== "-" ? wsel.a + " " : "") + wsel.src.charAt(0) + wsel.src.slice(1).toLowerCase()); cwNextWord(cwr); } }
       else { toast("Bu harf değil"); var bt = b; bt.classList.add("shake"); setTimeout(function () { drawGame(); }, 350); return; }
       return drawGame();
     }

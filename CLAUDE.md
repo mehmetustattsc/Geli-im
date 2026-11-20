@@ -22,6 +22,10 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 - Oyun öğeleri kendi aralıklı tekrarını tutar (`S.gs[oyun][id]`); oynanan turlar `S.gplay`.
 - Derslerde her 2 slayttan sonra slayt içeriğinden otomatik "Ara kontrol" sorusu üretilir (`genCheck`), testten önce 2 "Birlikte yap" görevi gelir (ipucu var, puana sayılmaz).
 
+## Power Query simülatörü
+- `js/pqsim.js` → `window.PQSIM.open(onDone)`; Oyun köşesinde "Power Query" (GINFO.pq). Küçük tblProd/tblTest örneği üzerinde dokunarak adım ekleme (Zusammenführen, Erweitern, Benutzerdef. Spalte, Filtern, Gruppieren, Entfernen), her adımın M kodu ve Türkçe açıklaması, Erweiterter Editor.
+- 6 görev fnVergleich'i (Bechtle Prod↔Test karşılaştırması) parça parça kurdurur; çözülen görevler `localStorage` `gelisim.pqsim`, puan `S.gplay` (g: "pq").
+
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.
 - Yazılı sorular `WRITE_Q` (content.js sonunda): kullanıcı yazar, örnek cevap + anahtar kelimelerle karşılaştırıp kendini puanlar (1 / 0,5 / 0).

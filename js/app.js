@@ -867,8 +867,12 @@
 
   /* ---------- oyun oturumu ---------- */
   var G = null;
-  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Schwedenrätsel", "pivot", "#3f6fd8", "Gazete bulmacası, iş kelimeleriyle"] };
+  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Schwedenrätsel", "pivot", "#3f6fd8", "Gazete bulmacası, iş kelimeleriyle"], pq: ["Power Query", "fx", "#7a4fc9", "Dokunarak sorgu kur, M kodunu gör"] };
   function openGame(kind) {
+    if (kind === "pq") {
+      if (!window.PQSIM) return toast("Simülatör yüklenemedi");
+      return window.PQSIM.open(function (sc, tot, min) { S.gplay.push({ date: TODAY, g: "pq", sc: sc, tot: tot, min: min }); save(); render(); });
+    }
     G = { kind: kind, ix: 0, t0: Date.now(), pts: [] };
     if (kind === "cw") { G.cw = newCW(); }
     else { G.items = pickItems(kind, GM[kind], kind === "satz" ? 6 : 4); OP = mkOP(G.items[0], kind); }

@@ -1,6 +1,76 @@
 {
   "issues": [
     {
+      "date": "2026-11-22",
+      "title": "Bülten #2 · 22 Kasım 2026",
+      "intro": "Bu hafta Excel Copilot'un Power Query ve veri temizleme becerileri öne çıkıyor; ayrıca doğal dille SQL soran yapay zekâ ajanlarının gerçek başarı oranlarına bakıyoruz. Kulüp tarafında DFB'nin yeni platformu TTSC App için hem rakip hem de fiyat referansı.",
+      "items": [
+        {
+          "cat": "ki",
+          "title": "Excel Copilot artık Power Query sorgusunu sözlü talimatla kuruyor",
+          "summary": "Microsoft'un Ekim 2026 Excel güncellemesiyle web sürümüne \"Get Data\" becerisi geldi. Kullanıcı hangi veriyi nereden almak istediğini düz cümleyle yazıyor, Copilot bundan yenilenebilir bir Power Query sorgusu üretiyor. Oluşan kod Gelişmiş Düzenleyici'de açılıp elle değiştirilebiliyor. Yazıya göre mevcut sorguların dönüştürülüp dönüştürülemeyeceği ve hangi kaynakların desteklendiği henüz net değil; yardımcı sorgu denemesi de başarısız olmuş.",
+          "why": "Senin Power Query otomasyonların için iyi bir yardımcı olabilir, ama M kodunu okuyup düzeltebilen kişi yine sen olacaksın; Copilot geçişi konuşulurken bu becerini öne çıkar.",
+          "src": "Borncity",
+          "url": "https://borncity.com/news/excel-copilot-microsoft-automatisiert-power-query-per-spracheingabe/",
+          "lang": "de"
+        },
+        {
+          "cat": "sql",
+          "title": "Copilot'un \"Clean Data\" özelliği beş tipik veri hatasını yakalıyor",
+          "summary": "Excel'e gelen Clean Data becerisi, formülleri, aramaları ve pivot tabloları bozan beş hata türüne odaklanıyor: fazla boşluklar, tutarsız yazımlar, farklı tarih biçimleri, tekrar eden satırlar ve metin olarak kaydedilmiş sayılar. @clean-data komutuyla ya da menüden çağrılıyor; önerilen düzeltmeler uygulanmadan önce kullanıcıya gösteriliyor. Dağıtım Ekim 2026'da Windows, Mac ve web için başladı; Copilot lisansı ya da uygun Microsoft 365 aboneliği gerekiyor.",
+          "why": "Fatura kontrolünde ve Event listesini veritabanına taşırken tam bu hatalarla karşılaşacaksın; aynı beş kontrolü SQL'de kendi doğrulama sorgularına dönüştürebilirsin.",
+          "src": "Borncity",
+          "url": "https://borncity.com/news/excel-copilot-clean-data-soll-fuenf-typische-datenfehler-automatisch-beheben/",
+          "lang": "de"
+        },
+        {
+          "cat": "sql",
+          "title": "Araştırma: Doğal dille SQL soran yapay zekâ ajanları ne kadar başarılı?",
+          "summary": "HMD dergisinde yayımlanan bir çalışmada, RAG tabanlı üç metinden SQL'e ajan örnek AdventureWorks veritabanı üzerinde denendi: depo işlemleri, satış analizi ve müşteri danışmanlığı. Basit, olguya dayalı sorgularda başarı oranı yüzde 80–94 arasında çıktı. Karmaşık analitik sorularda ise oran yüzde 56–67'ye düştü. Yazarlar bu ajanları standart sorgular için uygun buluyor; derin analiz için klasik BI araçlarının hâlâ daha iyi olduğunu söylüyor.",
+          "why": "İş yerindeki cihaz veritabanına yapay zekâ bağlama fikrinde gerçekçi bir beklenti çizer: rutin sorular için ajan, karmaşık raporlar için Power BI. Toplantıda bu ayrımı önerebilirsin.",
+          "src": "Springer – HMD Praxis der Wirtschaftsinformatik",
+          "url": "https://link.springer.com/article/10.1365/s40702-026-01321-9",
+          "lang": "de"
+        },
+        {
+          "cat": "ctl",
+          "title": "Yapay zekâ dönüşümünde başarıyı algoritma değil yönetim sistemi belirliyor",
+          "summary": "Frankfurt School'dan Prof. Ronald Gleich, 330 katılımcılı bir çalışmaya dayanarak yapay zekâ projelerinin başarısını beş boyuta bağlıyor: strateji ve liderlik, süreçler, teknoloji, etik ve yönetişim, çalışanlar ve kültür. Modelin açıklama gücü yüksek (R² = 0,78). Yazar, Controlling'in burada iş ortağı olarak veri kalitesini ve ana verileri sahiplenmesi gerektiğini savunuyor.",
+          "why": "Copilot ve DB projesinde \"fikir veren\" rolünü güçlendirmek için iyi bir çerçeve: Controlling'i veri kalitesinin sahibi olarak konumlandırmak Teamleiter başvurunu da destekler.",
+          "src": "Haufe",
+          "url": "https://www.haufe.de/controlling/controllerpraxis/ki-transformation-controlling-als-taktgeber_112_684026.html",
+          "lang": "de"
+        },
+        {
+          "cat": "de",
+          "title": "Üniversite mezunu ilanlarında Almanca, İngilizceden daha sık isteniyor",
+          "summary": "CHE'nin iş ilanı analizine göre diploma gerektiren ilanların yaklaşık yarısında (yüzde 47,5) dil bilgisi açıkça şart koşuluyor. Almanca yüzde 39,9 ile ilk sırada, İngilizce yüzde 35,7 ile ikinci; ikisi birlikte yüzde 28,1 oranında isteniyor. Diğer diller ilanların yüzde 1'inden azında geçiyor. Yazılım, BT, pazarlama ve satışta İngilizce daha önemli.",
+          "why": "Datenanalyst ilanlarında Almanca + İngilizce kombinasyonu standart; B2 hedefin bu yüzden doğrudan maaş ve rol hedefinle bağlantılı.",
+          "src": "CHE Centrum für Hochschulentwicklung",
+          "url": "https://www.che.de/2026/sprachkenntnisse-im-beruf-fuer-akademikerinnen-zaehlt-die-kombination-deutsch-und-englisch/",
+          "lang": "de"
+        },
+        {
+          "cat": "club",
+          "title": "DFB'nin \"Digitales Vereinsheim\" platformu: Kulüpler için ne değişiyor?",
+          "summary": "DFB, kulüp yönetimi için DFBnet Verein'in yerini alacak yeni bir merkezi platform sunuyor; eski sistem 31 Aralık 2027'de kapanıyor. Kullanım isteğe bağlı, geçiş döneminde iki sistem paralel çalışabiliyor. Temel paket ücretsiz; Plus paketi ilk yıl 129 Euro, sonra yılda 299 Euro'dan başlıyor. Veriler Almanya ve Lüksemburg'daki sunucularda tutuluyor.",
+          "why": "TTSC App için doğrudan rakip ve aynı zamanda fiyat referansı: çok dillilik gibi DFB'nin sunmadığı özellikleri öne çıkarırsan başka amatör kulüplere satış şansın artar.",
+          "src": "DFB",
+          "url": "https://www.dfb.de/news/faq-digitales-vereinsheim",
+          "lang": "de"
+        },
+        {
+          "cat": "car",
+          "title": "Süreç yönetimi ve Process Mining neden birlikte çalışmalı?",
+          "summary": "Bayreuth Üniversitesi'nden Prof. Maximilian Röglinger ve ekibi, süreç yönetimi (BPM) ile Process Mining'in çoğu şirkette farklı birimlerde kaldığını, bu yüzden birbirini beslemediğini anlatıyor. Önerileri: veriden gelen şeffaflığı sahadaki süreç bilgisiyle birleştirmek, tek tek vakalardan uçtan uca süreç haritasına geçmek ve ortak yönetişim kurmak. Yazarlar bunu teknik bir proje değil, bütünleşik bir yönetim yaklaşımı olarak görüyor.",
+          "why": "Prozessanalyst ilanlarında aranan tam bu köprü rolü; Controlling'deki faturalama süreci bilgin ile veri becerilerini birleştirdiğini mülakatta bu dille anlatabilirsin.",
+          "src": "CIO",
+          "url": "https://www.cio.de/article/4090200/wie-bpm-und-process-mining-gemeinsam-wirken-koennen.html",
+          "lang": "de"
+        }
+      ]
+    },
+    {
       "date": "2026-11-17",
       "title": "Bülten #1 · 17 Kasım 2026",
       "intro": "Bu hafta öne çıkanlar: Excel'deki Copilot artık finans ekipleri için mutabakat ve rapor işlerine giriyor, Power BI'da yapay zekâ ajanları kalıcı hale geldi, Controller maaşları ve Homeoffice üzerine yeni rakamlar var. Kulüp uygulaması pazarına da bir göz attık.",

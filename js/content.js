@@ -128,7 +128,95 @@ window.CURRICULUM = {
       ], task: "Şefine görüşme talebi için 3–4 cümlelik bir e-posta taslağı yaz. Henüz gönderme; önce Kariyer M1'deki maaş dersini bitir." }
     ]},
     { id: "de2", title: "Sözlü iletişim ve toplantı yönetimi", goal: "Toplantı yönetmek, telefon, kısa sunum", lessons: [] },
-    { id: "de3", title: "Teamleitung dili", goal: "Görev dağıtmak, geri bildirim, çatışma", lessons: [] },
+    { id: "de3", title: "Teamleitung dili", goal: "Görev dağıtmak, geri bildirim, çatışma", lessons: [
+      { id: "de3-1", title: "Görev vermek ve devretmek", min: 15, slides: [
+        { t: "intro", icon: "users", h: "İyi görev = net görev", p: "Ekip lideri olarak en sık yaptığın şey görev vermek. Net bir görevde dört şey var: ne, kim, ne zamana kadar, neden." },
+        { t: "flow", h: "Görev vermenin sırası", p: "Bu sırayı izlersen yanlış anlaşılma azalır. Sonda mutlaka geri sor.", steps: [
+          ["Kontext", "Neden önemli?"], ["Aufgabe", "Ne yapılacak?"], ["Termin", "Ne zamana kadar?"], ["Freiraum", "Nasıl yapacağına o karar verir"], ["Rückfrage", "Anlaşıldı mı?"] ] },
+        { t: "phrases", h: "Görev verme kalıpları", p: "Emir değil, net ve saygılı rica. Almanca iş hayatında bu ton beklenir.", items: [
+          ["Könntest du bitte bis Mittwoch … übernehmen?", "Çarşambaya kadar …'yı üstlenebilir misin?"],
+          ["Mir ist wichtig, dass …", "Benim için önemli olan …"],
+          ["Wie du das löst, entscheidest du selbst.", "Nasıl çözeceğine sen karar ver."],
+          ["Wenn du Unterstützung brauchst, sag Bescheid.", "Desteğe ihtiyacın olursa haber ver."],
+          ["Ist das so für dich machbar?", "Bu senin için yapılabilir mi?"],
+          ["Lass uns am Freitag kurz draufschauen.", "Cuma günü kısaca bir bakalım."] ] },
+        { t: "compare", h: "Belirsiz değil net", p: "\"Bir ara bakarsın\" diye verilen görev genelde unutulur. Tarih ve sonuç söyle.",
+          bad: ["Belirsiz", "Kannst du mal nach der Liste schauen?"], good: ["Net", "Könntest du bitte bis Mittwoch, 12 Uhr, die Event-Liste prüfen und mir die Abweichungen schicken?"] },
+        { t: "cards", h: "Devretmeden önce sor", p: "Her işi kendin yaparsan lider değil, en yoğun çalışan olursun.", items: [
+          ["users", "Kim daha iyi?", "Bu işi ekipte kim güçlü yapar?"], ["clock", "Zaman var mı?", "Teslim tarihi gerçekçi mi?"], ["check", "Kontrol noktası", "Ne zaman ara durum alacağım?"] ] }
+      ], quiz: [
+        { q: "Net bir görevde hangisi eksik olmamalı?", o: ["Kişinin geçmiş hataları", "Teslim tarihi", "Uzun açıklama", "Şefin onayı"], a: 1, e: "Tarih olmayan görev öncelik sırasında kaybolur." },
+        { q: "\"Wie du das löst, entscheidest du selbst.\" ne anlatır?", o: ["Kontrolü bıraktığını", "Nasıl yapacağına onun karar verdiğini", "Görevi geri aldığını", "Yardım etmeyeceğini"], a: 1, e: "Hedefi sen koyarsın, yolu çalışana bırakırsın: Freiraum." },
+        { q: "\"übernehmen\" bu bağlamda ne demek?", o: ["Devralmak, üstlenmek", "Ertelemek", "Kontrol etmek", "Reddetmek"], a: 0, e: "eine Aufgabe übernehmen = bir görevi üstlenmek." },
+        { q: "Görev verdikten sonra son adım?", o: ["Hemen kontrol etmek", "Rückfrage: anlaşıldı mı?", "Mail atmak", "Hiçbir şey"], a: 1, e: "Geri sormak yanlış anlaşılmayı baştan önler." }
+      ], task: "Ekibinden birine Almanca bir görev ver: bağlam, görev, tarih ve serbestlik içeren 3–4 cümle yaz." },
+
+      { id: "de3-2", title: "Geri bildirim vermek", min: 15, slides: [
+        { t: "intro", icon: "chat", h: "Direkt ama saygılı", p: "Testte \"direkt\" çıktın. Bu bir güç, ama Almanca'da doğru kalıpla söylenince. Kişiyi değil davranışı konuş." },
+        { t: "flow", h: "SBI: Situation, Behavior, Impact", p: "Bu yapı Alman şirketlerinde çok bilinir. Duruma, davranışa ve etkisine bakar.", steps: [
+          ["Situation", "Ne zaman, nerede?"], ["Verhalten", "Ne gördüm? (gözlem)"], ["Wirkung", "Etkisi ne oldu?"], ["Wunsch", "Bundan sonra ne bekliyorum?"], ["Frage", "Sen nasıl görüyorsun?"] ] },
+        { t: "phrases", h: "Geri bildirim kalıpları", p: "Ich-Botschaft: \"sen\" yerine \"ben\" diye başla.", items: [
+          ["Mir ist aufgefallen, dass …", "… dikkatimi çekti."],
+          ["Das hat dazu geführt, dass …", "Bu, …'ya yol açtı."],
+          ["Ich wünsche mir, dass du künftig …", "Bundan sonra …'nı istiyorum."],
+          ["Wie siehst du das?", "Sen nasıl görüyorsun?"],
+          ["Das hast du richtig gut gemacht, weil …", "Bunu çok iyi yaptın, çünkü …"],
+          ["Was brauchst du von mir?", "Benden neye ihtiyacın var?"] ] },
+        { t: "compare", h: "Suçlama değil gözlem", p: "\"Immer\" ve \"nie\" kelimeleri savunmaya iter. Somut bir olayı anlat.",
+          bad: ["Suçlayıcı", "Du bist immer unpünktlich."], good: ["Gözlem", "Mir ist aufgefallen, dass die Liste diese Woche zweimal zu spät kam. Dadurch hat sich die Abrechnung verzögert."] },
+        { t: "cards", h: "Olumlu geri bildirimi unutma", p: "Övgü de somut olmalı. \"Gut gemacht\" yetmez, neyi iyi yaptığını söyle.", items: [
+          ["check", "Somut", "Neyi iyi yaptı?"], ["chart", "Etkisi", "Bu ekibe ne kazandırdı?"], ["users", "Herkesin önünde", "Övgü açıkta, eleştiri baş başa"] ] }
+      ], quiz: [
+        { q: "\"Mir ist aufgefallen, dass …\" ne işe yarar?", o: ["Suçlamaya", "Gözlemi yumuşak başlatmaya", "Özür dilemeye", "Toplantıyı bitirmeye"], a: 1, e: "Gözleminle başlarsın, karşı taraf savunmaya geçmez." },
+        { q: "Hangisi kaçınılması gereken bir ifade?", o: ["Wie siehst du das?", "Du machst nie etwas richtig.", "Was brauchst du von mir?", "Das hat dazu geführt, dass …"], a: 1, e: "nie/immer genellemesi tartışmayı kişiselleştirir." },
+        { q: "Eleştiri nerede verilir?", o: ["Toplantıda herkesin önünde", "Mailde CC ile", "Baş başa (unter vier Augen)", "Hiç verilmez"], a: 2, e: "Övgü açıkta, eleştiri baş başa." },
+        { q: "\"Wirkung\" ne demek?", o: ["Etki", "Sebep", "İstek", "Durum"], a: 0, e: "SBI'daki Impact: davranışın etkisi." }
+      ], task: "Gerçek ya da hayalî bir durum için SBI yapısıyla 4 cümlelik Almanca bir geri bildirim yaz." },
+
+      { id: "de3-3", title: "Çatışmayı yönetmek", min: 15, slides: [
+        { t: "intro", icon: "users", h: "Çatışma normaldir", p: "İki çalışan anlaşamıyor ya da biri işe itiraz ediyor. Liderin işi hakem olmak değil, konuşmayı yönetmektir." },
+        { t: "flow", h: "Çatışma görüşmesi", p: "Önce dinle, sonra çözümü birlikte bul. Kararı yazıya dök.", steps: [
+          ["Einladen", "Baş başa görüşmeye çağır"], ["Zuhören", "Her iki tarafı dinle"], ["Zusammenfassen", "Kendi sözlerinle özetle"], ["Lösung suchen", "Birlikte seçenek bul"], ["Vereinbaren", "Kim, ne, ne zaman"] ] },
+        { t: "phrases", h: "Arabuluculuk kalıpları", p: "Sakin tonu bu cümleler taşır.", items: [
+          ["Ich möchte verstehen, was passiert ist.", "Ne olduğunu anlamak istiyorum."],
+          ["Habe ich dich richtig verstanden, dass …?", "Seni doğru anladım mı, …?"],
+          ["Was wäre für dich eine faire Lösung?", "Senin için adil bir çözüm ne olurdu?"],
+          ["Lass uns nach vorne schauen.", "İleriye bakalım."],
+          ["Können wir uns darauf einigen, dass …?", "… konusunda anlaşabilir miyiz?"],
+          ["Das nehme ich ernst.", "Bunu ciddiye alıyorum."] ] },
+        { t: "compare", h: "Taraf tutma, süreci yönet", p: "Hemen hüküm verirsen bir taraf kendini dinlenmemiş hisseder.",
+          bad: ["Hüküm", "Du hast recht, er hat Mist gebaut."], good: ["Süreç", "Ich höre mir beide Seiten an und dann suchen wir gemeinsam eine Lösung."] },
+        { t: "cards", h: "Yurttaki deneyimin", p: "40 kişilik ekipte vardiya ve izin çatışmalarını zaten yönettin. Bunu mülakatta örnek olarak anlat.", items: [
+          ["clock", "Vardiya", "Adil dağıtım kuralı"], ["flag", "İzin", "Önceden şeffaf plan"], ["chat", "Konuşma", "Baş başa, sakin"] ] }
+      ], quiz: [
+        { q: "Çatışma görüşmesinde ilk adım?", o: ["Karar vermek", "Dinlemek", "Uyarı yazmak", "Şefe bildirmek"], a: 1, e: "Dinlemeden önerilen çözüm kabul görmez." },
+        { q: "\"Habe ich dich richtig verstanden, dass …?\" ne işe yarar?", o: ["Özetleyip kontrol etmeye", "Eleştirmeye", "Konuyu kapatmaya", "Görev vermeye"], a: 0, e: "Aktif dinleme: kendi sözlerinle özetlersin." },
+        { q: "\"sich einigen\" ne demek?", o: ["Kavga etmek", "Anlaşmak, uzlaşmak", "Ayrılmak", "Ertelemek"], a: 1, e: "Können wir uns darauf einigen? = Bunda anlaşabilir miyiz?" },
+        { q: "Liderin çatışmadaki rolü?", o: ["Hemen haklıyı seçmek", "Konuşmayı yönetip birlikte çözüm bulmak", "Görmezden gelmek", "İK'ya devretmek"], a: 1, e: "Süreci yönetirsin, çözümü birlikte bulursunuz." }
+      ], task: "Yurtta yaşadığın bir vardiya ya da izin çatışmasını Almanca 4–5 cümleyle anlat: durum, ne yaptın, sonuç." },
+
+      { id: "de3-4", title: "Ekip toplantısı yönetmek", min: 15, slides: [
+        { t: "intro", icon: "users", h: "Toplantıyı sen yönetiyorsun", p: "Ekip lideri olarak haftalık toplantıyı açar, yönetir ve kapatırsın. Hazır kalıplar dil stresini azaltır." },
+        { t: "flow", h: "Toplantının iskeleti", p: "Her toplantı aynı yapıda olursa ekip neyi beklediğini bilir.", steps: [
+          ["Begrüßung", "Açılış"], ["Tagesordnung", "Gündem"], ["Zwischenstand", "Herkesten ara durum"], ["Themen", "Konular, karar"], ["To-dos", "Kim, ne, ne zaman"], ["Abschluss", "Kapanış"] ] },
+        { t: "phrases", h: "Yönetim kalıpları", p: "Bunları ezberle; her hafta kullanacaksın.", items: [
+          ["Lasst uns anfangen.", "Başlayalım."],
+          ["Heute haben wir drei Themen.", "Bugün üç konumuz var."],
+          ["Kurzer Zwischenstand bitte, reihum.", "Sırayla kısa ara durum lütfen."],
+          ["Das besprechen wir lieber separat.", "Bunu ayrıca konuşalım."],
+          ["Wir müssen auf die Zeit achten.", "Zamana dikkat etmemiz lazım."],
+          ["Danke euch, bis nächste Woche.", "Teşekkürler, haftaya görüşürüz."] ] },
+        { t: "compare", h: "Konuyu toparla", p: "Toplantı dağılırsa nazikçe gündeme geri dön.",
+          bad: ["Sert", "Das gehört hier nicht hin."], good: ["Nazik", "Guter Punkt – das nehmen wir mit und besprechen es separat. Zurück zur Tagesordnung."] },
+        { t: "cards", h: "Toplantıdan sonra", p: "Kararlar yazılmazsa unutulur.", items: [
+          ["doc", "Protokoll", "3 satırlık özet"], ["check", "To-dos", "İsim ve tarihle"], ["flag", "Takip", "Gelecek hafta ilk iş kontrol"] ] }
+      ], quiz: [
+        { q: "\"Tagesordnung\" ne demek?", o: ["Gündem", "Tutanak", "Vardiya", "Görev"], a: 0, e: "Toplantının konu listesi." },
+        { q: "Konu dağılınca en iyi tepki?", o: ["Das gehört hier nicht hin.", "Das besprechen wir lieber separat.", "Sessiz kalmak", "Toplantıyı bitirmek"], a: 1, e: "Konuyu küçümsemeden ertelersin." },
+        { q: "\"reihum\" ne demek?", o: ["Hepsi birden", "Sırayla", "Kısaca", "Yazılı"], a: 1, e: "reihum = sırayla, herkes tek tek." },
+        { q: "Toplantı sonunda en önemli çıktı?", o: ["Uzun tutanak", "İsim ve tarihli to-do listesi", "Bir sonraki toplantı", "Kahve"], a: 1, e: "Kim, ne, ne zaman: işi yürüten budur." }
+      ], task: "Ekip toplantısını açan 3 cümle ve kapatan 2 cümle yaz (Almanca)." }
+    ]},
     { id: "de4", title: "B2 Beruf hazırlığı", goal: "Sınav formatı ve deneme soruları", lessons: [] }
   ],
 
@@ -432,7 +520,53 @@ window.CURRICULUM = {
       ], task: "Şefinden \"Stand der Teamleiter-Entscheidung\" için bir görüşme tarihi iste. Projeler'e not et." }
     ]},
     { id: "car2", title: "Bewerbung, LinkedIn ve Xing", goal: "Hedef role göre CV ve profil", lessons: [] },
-    { id: "car3", title: "Almanca mülakat hazırlığı", goal: "Sık sorulan sorular ve cevap kalıpları", lessons: [] },
+    { id: "car3", title: "Almanca mülakat hazırlığı", goal: "Sık sorulan sorular ve cevap kalıpları", lessons: [
+      { id: "car3-1", title: "Aivy sonuçlarını açıklamak", min: 15, slides: [
+        { t: "intro", icon: "head", h: "Kabul et, güce çevir, gelişimini söyle", p: "JUMP görüşmesinde test sonuçların konuşulabilir. Savunmaya geçme; kendini tanıyan biri gibi konuş." },
+        { t: "flow", h: "Cevabın yapısı", p: "Her sonuç için aynı üç adım.", steps: [
+          ["Anerkennen", "Evet, bu bende var"], ["Stärke", "Bunun faydası şu"], ["Entwicklung", "Şu konuda gelişiyorum"] ] },
+        { t: "phrases", h: "Hazır cevaplar (1)", p: "Risk, hız ve dil.", items: [
+          ["Ich gehe Risiken bewusst ein – aber kontrolliert und auf Basis von Zahlen.", "Riskleri bilinçli alırım, ama kontrollü ve rakamlara dayanarak."],
+          ["Ich arbeite lieber sorgfältig als schnell. Daran arbeite ich, schneller zu entscheiden.", "Hızlı yerine dikkatli çalışırım; daha hızlı karar vermek için çalışıyorum."],
+          ["Deutsch ist nicht meine Muttersprache. Ich verbessere mich ständig.", "Almanca ana dilim değil; sürekli gelişiyorum."],
+          ["Ich bin offen für Neues, aber wenn ich entscheide, dann sorgfältig.", "Yeniliğe açığım ama karar verirken dikkatliyim."] ] },
+        { t: "phrases", h: "Hazır cevaplar (2)", p: "Düzen, endişe ve direktlik.", items: [
+          ["Ich lerne gerade, Prioritäten zu setzen und Dinge konsequent abzuschließen.", "Öncelik belirlemeyi ve işleri sonuna kadar götürmeyi öğreniyorum."],
+          ["Ich denke Konsequenzen und Risiken früh mit.", "Sonuçları ve riskleri erkenden düşünürüm."],
+          ["Ich spreche Dinge offen und direkt an – aber respektvoll.", "Konuları açık ve doğrudan söylerim, ama saygıyla."] ] },
+        { t: "cards", h: "Her cevaba bir örnek", p: "Cümle tek başına zayıf kalır. Arkasına kısa, gerçek bir örnek koy.", items: [
+          ["users", "40 kişilik ekip", "Vardiya, izin, mesai planı"], ["chart", "Otomasyonlar", "Excel / Power Query ile kazanılan saat"], ["flag", "TTSC", "Kulüpte organizasyon rolü"] ] }
+      ], quiz: [
+        { q: "Bir zayıf sonucu açıklarken ilk adım?", o: ["İnkâr etmek", "Kabul etmek", "Testi eleştirmek", "Konuyu değiştirmek"], a: 1, e: "Kabul etmek öz farkındalık gösterir." },
+        { q: "\"sorgfältig\" ne demek?", o: ["Hızlı", "Özenli, dikkatli", "Kaygılı", "Yaratıcı"], a: 1, e: "sorgfältig arbeiten = özenle çalışmak." },
+        { q: "\"Prioritäten setzen\" ne demek?", o: ["Öncelik belirlemek", "Risk almak", "Görev vermek", "Erteleme"], a: 0, e: "Neyin önce yapılacağına karar vermek." },
+        { q: "Bir cevabı güçlü yapan nedir?", o: ["Uzunluk", "Arkasındaki somut örnek", "Teknik kelimeler", "Gülümseme"], a: 1, e: "Örnek, söylediğini kanıtlar." }
+      ], task: "Yedi cevaptan ikisini seç ve her birine yaşadığın gerçek bir örneği Almanca 2 cümleyle ekle." },
+
+      { id: "car3-2", title: "Sık sorulan liderlik soruları", min: 15, slides: [
+        { t: "intro", icon: "users", h: "Teamleitung mülakatı", p: "Bu sorular neredeyse her liderlik görüşmesinde gelir. Cevapların iskeletini şimdi hazırla." },
+        { t: "phrases", h: "Sorular", p: "Önce soruyu anlamak önemli.", items: [
+          ["Warum wollen Sie Führungsverantwortung übernehmen?", "Neden liderlik sorumluluğu almak istiyorsunuz?"],
+          ["Wie würden Sie Ihren Führungsstil beschreiben?", "Liderlik tarzınızı nasıl tanımlarsınız?"],
+          ["Wie gehen Sie mit Konflikten im Team um?", "Ekipteki çatışmalarla nasıl başa çıkarsınız?"],
+          ["Wie führen Sie ehemalige Kollegen?", "Eski iş arkadaşlarınızı nasıl yönetirsiniz?"],
+          ["Was war Ihre größte Herausforderung als Führungskraft?", "Yönetici olarak en büyük zorluğunuz neydi?"] ] },
+        { t: "phrases", h: "Cevap başlangıçları", p: "Bu girişlerle başla, arkasına kendi örneğini koy.", items: [
+          ["Ich habe bereits vier Jahre ein Team von rund 40 Personen geführt.", "Dört yıl boyunca yaklaşık 40 kişilik bir ekibi yönettim."],
+          ["Mein Führungsstil ist unterstützend, aber klar in den Erwartungen.", "Liderlik tarzım destekleyici ama beklentilerde net."],
+          ["Bei Konflikten höre ich zuerst beide Seiten an.", "Çatışmada önce iki tarafı dinlerim."],
+          ["Ich kläre die neue Rolle offen im Gespräch.", "Yeni rolü açık bir konuşmayla netleştiririm."] ] },
+        { t: "flow", h: "STAR yöntemi", p: "Örnek anlatırken bu sırayı izle; kısa ve somut kalırsın.", steps: [
+          ["Situation", "Durum"], ["Task", "Görevin"], ["Action", "Ne yaptın"], ["Result", "Sonuç, mümkünse rakamla"] ] },
+        { t: "cards", h: "\"Eski kolegler\" sorusu önemli", p: "İçeriden terfi edersen dün yanında oturanlar bugün ekibin olur.", items: [
+          ["chat", "Açık konuş", "Rol değişikliğini baş başa konuş"], ["check", "Adil ol", "Kimseye ayrıcalık yok"], ["users", "Güveni koru", "Dostluk kalır, rol netleşir"] ] }
+      ], quiz: [
+        { q: "\"Führungsverantwortung übernehmen\" ne demek?", o: ["Liderlik sorumluluğu almak", "İşten ayrılmak", "Eğitim almak", "Takım değiştirmek"], a: 0, e: "Führung = liderlik, Verantwortung = sorumluluk." },
+        { q: "STAR'da \"Result\" için en iyisi?", o: ["Genel bir his", "Rakamla gösterilen sonuç", "Şefin adı", "Tarih"], a: 1, e: "Rakam, sonucu inandırıcı yapar." },
+        { q: "Eski iş arkadaşlarını yönetirken ilk adım?", o: ["Mesafe koymak", "Rol değişikliğini açıkça konuşmak", "Hiçbir şey değişmemiş gibi davranmak", "Ekibi değiştirmek"], a: 1, e: "Belirsizlik çatışma doğurur; açık konuşma güven verir." },
+        { q: "\"unterstützend\" ne demek?", o: ["Destekleyici", "Sert", "Rekabetçi", "Çekingen"], a: 0, e: "unterstützen = desteklemek." }
+      ], task: "\"Warum wollen Sie Führungsverantwortung übernehmen?\" sorusuna STAR ile 4–5 cümlelik Almanca cevap yaz." }
+    ]},
     { id: "car4", title: "Teklif değerlendirme ve müzakere", goal: "Paket karşılaştırma, pazarlık", lessons: [] }
   ]
 };
@@ -464,5 +598,11 @@ window.WRITE_Q = {
   "sql1-2": { q: "Sparte'si kfl ya da lidl-s olan ve modeli 'MacBook' ile başlayan cihazları getir.", model: "SELECT *\nFROM assets\nWHERE sparte IN ('kfl', 'lidl-s')\n  AND modell LIKE 'MacBook%';", keys: ["from assets", "in (", "like", "'macbook%'", "and"], code: true },
   "sql1-3": { q: "Model başına cihaz sayısını en çoktan en aza sıralı getiren sorguyu yaz.", model: "SELECT modell, COUNT(*) AS anzahl\nFROM assets\nGROUP BY modell\nORDER BY anzahl DESC;", keys: ["count(*)", "group by modell", "order by", "desc"], code: true },
   "sql1-4": { q: "Fiyat listesinde (listepreise) karşılığı olmayan modelleri bulan sorguyu yaz.", model: "SELECT a.modell\nFROM assets a\nLEFT JOIN listepreise p ON a.modell = p.modell\nWHERE p.modell IS NULL;", keys: ["left join", "listepreise", "on", "is null"], code: true },
+  "de3-1": { q: "Almanca yaz: Josip'ten cumaya kadar Event listesini kontrol etmesini rica et ve desteğe ihtiyacı olursa haber vermesini söyle.", model: "Könntest du bitte bis Freitag die Event-Liste prüfen? Wenn du Unterstützung brauchst, sag Bescheid.", keys: ["könntest", "bis freitag", "prüf", "unterstützung", "bescheid"] },
+  "de3-2": { q: "Bir gözlemle başlayan Almanca geri bildirim cümlesi yaz: liste bu hafta iki kez geç geldi.", model: "Mir ist aufgefallen, dass die Liste diese Woche zweimal zu spät kam.", keys: ["mir ist aufgefallen", "dass", "zu spät"] },
+  "de3-3": { q: "Almanca yaz: Senin için adil bir çözüm ne olurdu?", model: "Was wäre für dich eine faire Lösung?", keys: ["was wäre", "faire", "lösung"] },
+  "de3-4": { q: "Almanca yaz: Bugün üç konumuz var, sırayla kısa bir ara durum lütfen.", model: "Heute haben wir drei Themen. Kurzer Zwischenstand bitte, reihum.", keys: ["drei themen", "zwischenstand", "reihum"] },
+  "car3-1": { q: "Almanca yaz: Hızlı yerine dikkatli çalışmayı tercih ederim.", model: "Ich arbeite lieber sorgfältig als schnell.", keys: ["lieber", "sorgfältig", "als schnell"] },
+  "car3-2": { q: "Almanca yaz: Dört yıl boyunca yaklaşık 40 kişilik bir ekibi yönettim.", model: "Ich habe vier Jahre ein Team von rund 40 Personen geführt.", keys: ["vier jahre", "team", "40", "geführt"] },
   "pbi1-3": { q: "Assets tablosundaki Miete sütununu toplayan 'Gesamtmiete' measure'ını yaz.", model: "Gesamtmiete = SUM ( Assets[Miete] )", keys: ["gesamtmiete", "sum", "assets[miete]"], code: true }
 };

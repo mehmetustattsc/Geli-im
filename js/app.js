@@ -78,7 +78,7 @@
     return {
       start: TODAY, target: "2028-11-01",
       goal: "Kariyer adımı: Prozess- / Datenanalyst gibi bir rol, ≥4.000 € brüt, ≤30 km ya da ≥%50 remote.",
-      plan: { 1: "de", 2: "sql", 3: "mkt", 4: "pbi", 5: "car", 6: "weak", 0: "review" },
+      plan: { 1: "de", 2: "sql", 3: "mkt", 4: "pbi", 5: "car", 6: "de", 0: "review" },
       sessions: [], best: {}, tasks: {}, srs: {}, ideas: [], read: {}, listen: {},
       pod: { pos: {}, done: {}, last: null, rate: 1, goal: 150 }, gs: {}, gplay: [],
       projects: JSON.parse(JSON.stringify(window.DEFAULT_PROJECTS)),
@@ -89,6 +89,7 @@
     try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
     var d = defaults();
     if (!S) S = d; else Object.keys(d).forEach(function (k) { if (S[k] == null) S[k] = d[k]; });
+    if (!S.m9) { if (S.plan && S.plan[6] === "weak") S.plan[6] = "de"; S.m9 = 1; }
     if (S.wrong) { S.wrong.forEach(function (id) { S.srs[id] = { b: 0, due: TODAY }; }); delete S.wrong; }
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Kaydedilemedi: tarayıcı depolaması kapalı olabilir"); } }
@@ -867,7 +868,26 @@
 
   /* ---------- oyun oturumu ---------- */
   var G = null;
-  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Schwedenrätsel", "pivot", "#3f6fd8", "Gazete bulmacası, iş kelimeleriyle"], pq: ["Power Query", "fx", "#7a4fc9", "Dokunarak sorgu kur, M kodunu gör"] };
+  var GINFO = { satz: ["Satzbau", "chat", "#d1495b", "Almanca cümleyi doğru sıraya diz"], sql: ["Sorgu yapbozu", "db", "#1f8a83", "Parçalardan doğru sorguyu kur"], cw: ["Schwedenrätsel", "pivot", "#3f6fd8", "Gazete bulmacası, iş kelimeleriyle"], pq: ["Power Query", "fx", "#7a4fc9", "Dokunarak sorgu kur, M kodunu gör"], wort: ["Wortschatz", "book", "#c2410c", "İş kelimeleri: anlamını seç, örnekle öğren"] };
+  /* ---------- Wortschatz (kelime kartları) ---------- */
+  function mkWQ(it) {
+    var bank = GM.wort || [], dir = Math.random() < 0.5 ? "de" : "tr", same = bank.filter(function (x) { return x.t === it.t && x.id !== it.id; });
+    if (same.length < 3) same = bank.filter(function (x) { return x.id !== it.id; });
+    var f = dir === "de" ? "tr" : "w", right = it[f], wr = shuffle(same).map(function (x) { return x[f]; }).filter(function (x, i, a) { return x !== right && a.indexOf(x) === i; }).slice(0, 3);
+    var o = shuffle([right].concat(wr));
+    return { it: it, dir: dir, o: o, a: o.indexOf(right), v: null };
+  }
+  function renderWQ(q) {
+    var it = q.it, T = window.WORT_TOPICS || {}, h = "<p class=\"sp\">" + esc(T[it.t] || "") + " · " + (q.dir === "de" ? "Bu ne demek?" : "Almancası hangisi?") + "</p><h2>" + esc(q.dir === "de" ? it.w : it.tr) + "</h2>";
+    h += '<div class="opts">' + q.o.map(function (o, k) { var c = q.v == null ? "" : k === q.a ? "right" : k === q.v ? "wrong" : "dim"; return '<button data-wa="' + k + '" class="' + c + '"' + (q.v != null ? " disabled" : "") + "><span>" + String.fromCharCode(65 + k) + "</span>" + esc(o) + "</button>"; }).join("") + "</div>";
+    if (q.v != null) h += '<div class="expl ' + (q.v === q.a ? "ok" : "no") + '"><b>' + esc(it.w) + " = " + esc(it.tr) + "</b><br>„" + esc(it.ex) + "”<br><i>" + esc(it.ext) + "</i></div>";
+    return h;
+  }
+  function wFoot(q) {
+    if (q.v == null) return '<button class="btn wide ghost" data-act="wskip">Bilmiyorum, göster</button>';
+    return '<button class="btn wide" data-act="gnext">' + (G.ix === G.items.length - 1 ? "Sonuç" : "Sonraki") + ic("arrow") + "</button>";
+  }
+  function wAnswer(k) { var q = G.wq; if (q.v != null) return; q.v = k; var p = k === q.a ? 1 : 0; G.pts.push(p); gUpdate("wort", q.it.id, p); drawGame(); }
   function openGame(kind) {
     if (kind === "pq") {
       if (!window.PQSIM) return toast("Simülatör yüklenemedi");
@@ -875,6 +895,7 @@
     }
     G = { kind: kind, ix: 0, t0: Date.now(), pts: [] };
     if (kind === "cw") { G.cw = newCW(); }
+    else if (kind === "wort") { G.items = pickItems("wort", GM.wort || [], 10); G.wq = mkWQ(G.items[0]); }
     else { G.items = pickItems(kind, GM[kind], kind === "satz" ? 6 : 4); OP = mkOP(G.items[0], kind); }
     drawGame();
   }
@@ -890,6 +911,7 @@
       h += '<div class="result">' + ring(pct, pct >= 0.8 ? "#2e9e6a" : "#e3a018", 130, Math.round(pct * 100) + "%") + "<h2>" + (pct >= 0.8 ? "Harika" : pct >= 0.5 ? "İyi gidiyor" : "Tekrar edelim") + "</h2><p>" + (Math.round(sc * 10) / 10) + "/" + G.pts.length + " puan · " + Math.max(1, Math.round((Date.now() - G.t0) / 60000)) + " dk. Zorlandığın öğeler yakında yine karşına çıkacak.</p></div>";
       foot = '<button class="btn ghost" data-act="gclose">Kapat</button><button class="btn" data-act="gagain">Bir tur daha</button>';
     } else if (G.kind === "cw") { h += renderCW(G.cw); foot = cwFoot(G.cw); }
+    else if (G.kind === "wort") { h += renderWQ(G.wq); foot = wFoot(G.wq); }
     else { h += renderOP(OP); foot = opFoot(OP, "gnext", G.ix === G.items.length - 1 ? "Sonuç" : "Sonraki"); }
     h += '</div></div><div class="pl-foot">' + foot + "</div>";
     var key = G.kind + ":" + (G.res ? "r" : G.ix);
@@ -994,7 +1016,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read],[data-wa]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -1010,6 +1032,7 @@
     if (d.rate != null && P) { P.ans[curQ().key].pts = +d.rate; return drawPlayer(); }
     if (d.ep) return playEp(d.ep);
     if (d.game) return openGame(d.game);
+    if (d.wa != null && G && G.wq) return wAnswer(+d.wa);
     if (d.opp != null && OP && OP.res == null) { OP.picked.push(+d.opp); return P ? drawPlayer() : drawGame(); }
     if (d.opu != null && OP && OP.res == null) { OP.picked.splice(+d.opu, 1); return P ? drawPlayer() : drawGame(); }
     if (d.cwl && G && G.kind === "cw") { G.cw.lang = d.cwl; return drawGame(); }
@@ -1029,7 +1052,8 @@
       case "next": if (P.i < P.seq.length - 1) P.i++; else P.phase = "quiz"; return drawPlayer();
       case "opcheck": if (OP) { opCheck(OP); if (G && !P) { G.pts.push(OP.pts); gUpdate(G.kind, OP.item.id, OP.pts); } } return P ? drawPlayer() : drawGame();
       case "ophint": if (OP) opHint(OP); return P ? drawPlayer() : drawGame();
-      case "gnext": G.ix++; if (G.ix >= G.items.length) return finishGame(); OP = mkOP(G.items[G.ix], G.kind); return drawGame();
+      case "gnext": G.ix++; if (G.ix >= G.items.length) return finishGame(); if (G.kind === "wort") G.wq = mkWQ(G.items[G.ix]); else OP = mkOP(G.items[G.ix], G.kind); return drawGame();
+      case "wskip": return wAnswer(-1);
       case "gfinish": return finishGame();
       case "gclose": return closeGame();
       case "gagain": var gk = G.kind; return openGame(gk);

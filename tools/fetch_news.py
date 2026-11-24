@@ -104,6 +104,9 @@ PODCASTS = [
     ("lern", "Langsam gesprochene Nachrichten", "https://rss.dw.com/xml/DKpodcast_lgn_de", 6),
     ("lern", "Top-Thema mit Vokabeln", "https://rss.dw.com/xml/DKpodcast_topthemamitvokabeln_de", 5),
     ("lern", "Easy German Podcast", None, 3),
+    ("lern", "Slow German Annik Rubens", None, 4),
+    ("uyku", "Einschlafen Podcast Toby Baier", None, 3),
+    ("uyku", "Einschlafen mit Wikipedia", None, 3),
     ("nat",  "tagesschau in 100 Sekunden", None, 3),
     ("nat",  "Deutschlandfunk Der Tag", None, 3),
     ("ki",   "KI-Update heise", None, 3),
@@ -158,7 +161,7 @@ def podcasts():
         except Exception as e:
             print(f"pod skip {term}: {e}", file=sys.stderr)
         time.sleep(0.5)
-    order = {"lern": 0, "nat": 1, "ki": 2, "is": 3}
+    order = {"lern": 0, "uyku": 1, "nat": 2, "ki": 3, "is": 4}
     eps.sort(key=lambda e: (order.get(e["cat"], 9), -e["ts"]))
     for e in eps: e.pop("ts", None)
     with open("data/podcasts.json", "w", encoding="utf-8") as f:

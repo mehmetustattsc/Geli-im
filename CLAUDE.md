@@ -25,6 +25,10 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 ## Power Query simülatörü
 - `js/pqsim.js` → `window.PQSIM.open(onDone)`; Oyun köşesinde "Power Query" (GINFO.pq). Küçük tblProd/tblTest örneği üzerinde dokunarak adım ekleme (Zusammenführen, Erweitern, Benutzerdef. Spalte, Filtern, Gruppieren, Entfernen), her adımın M kodu ve Türkçe açıklaması, Erweiterter Editor.
 - 6 görev fnVergleich'i (Bechtle Prod↔Test karşılaştırması) parça parça kurdurur; çözülen görevler `localStorage` `gelisim.pqsim`, puan `S.gplay` (g: "pq").
+## Sosyal Almanca ve hikâyeler
+- Almanca alanında `ds1` modülü (Sosyal Almanca ve duygular, 4 ders) de1'den sonra gelir; Satzbau'da `l: "ds1-x"` cümleler, bulmacada duygu kelimeleri (`e1…`).
+- `js/stories.js` → `STORIES`: özgün B1 hikâyeler `[Almanca, Türkçe]` cümle çiftleri + kelime listesi. Dinle → Hikâyeler; telefonun Almanca sesiyle (speechSynthesis) cümle cümle okunur, hız 0,7/0,85/1, zamanlayıcı 15/30/45 dk (dolana kadar hikâyeler arka arkaya), karanlık ekran. Dinleme süresi `S.listen`'e eklenir.
+- Podcast'lerde `uyku` kategorisi ve mini oynatıcıda uyku zamanlayıcısı (15–60 dk).
 
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.

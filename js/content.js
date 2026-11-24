@@ -127,6 +127,89 @@ window.CURRICULUM = {
         { q: "Maaş artmazsa hangisi makul bir alternatif talep?", o: ["İstifa tehdidi", "Ek Homeoffice günü", "Konuyu bir daha açmamak", "Mesaiyi azaltmak"], a: 1, e: "Homeoffice senin için doğrudan para ve zaman demek." }
       ], task: "Şefine görüşme talebi için 3–4 cümlelik bir e-posta taslağı yaz. Henüz gönderme; önce Kariyer M1'deki maaş dersini bitir." }
     ]},
+    { id: "ds1", title: "Sosyal Almanca ve duygular", goal: "Duyguları anlatmak, sohbet etmek, iş dışında rahat konuşmak", lessons: [
+      { id: "ds1-1", title: "Duyguları anlatmak", min: 15, slides: [
+        { t: "intro", icon: "chat", h: "İş Almancası yetmez", p: "Toplantıda rahat konuşan biri, \"Nasılsın?\" sorusuna \"Gut\" dışında cevap veremeyebilir. Duygu kelimeleri ilişkiyi kurar; bu ders onları getiriyor." },
+        { t: "table", h: "En sık kullanılan duygular", p: "Bu on kelimeyi bilmek, günlük sohbetlerin çoğunu karşılar.", head: ["Almanca", "Türkçe"], rows: [
+          ["froh / glücklich", "mutlu"], ["traurig", "üzgün"], ["enttäuscht", "hayal kırıklığına uğramış"], ["erleichtert", "rahatlamış"], ["genervt", "sinirleri bozulmuş"], ["gestresst", "stresli"], ["stolz", "gururlu"], ["besorgt", "endişeli"], ["aufgeregt", "heyecanlı"], ["dankbar", "minnettar"]] },
+        { t: "phrases", h: "Duyguyu cümleye koymak", p: "Üç kalıp: Ich bin …, Ich fühle mich …, Das macht mich …", items: [
+          ["Ich bin heute ziemlich müde.", "Bugün epey yorgunum."],
+          ["Ich fühle mich ein bisschen überfordert.", "Kendimi biraz bunalmış hissediyorum."],
+          ["Das macht mich wirklich froh.", "Bu beni gerçekten mutlu ediyor."],
+          ["Ich freue mich auf das Wochenende.", "Hafta sonunu dört gözle bekliyorum."],
+          ["Ich mache mir Sorgen um meinen Vater.", "Babam için endişeleniyorum."]] },
+        { t: "compare", h: "sich freuen auf mı, über mü?", p: "Aynı fiil, iki farklı edat, iki farklı anlam. En sık karıştırılan ikililerden biri.",
+          bad: ["auf = gelecek", "Ich freue mich auf den Urlaub. (Tatil henüz gelmedi, bekliyorum.)"], good: ["über = olmuş şey", "Ich freue mich über das Geschenk. (Hediye geldi, sevindim.)"] },
+        { t: "bars", h: "Yoğunluk: ne kadar?", p: "Duyguyu derecelendirmek, cümleyi doğal yapar. Soldan sağa güçleniyor.", unit: "", items: [["ein bisschen", 1], ["ziemlich", 2], ["sehr", 3], ["total / echt", 4], ["wahnsinnig", 5]] }
+      ], quiz: [
+        { q: "\"erleichtert\" ne demek?", o: ["rahatlamış", "hayal kırıklığına uğramış", "heyecanlı", "kızgın"], a: 0, e: "Bir yük kalkınca hissedilen: Ich bin so erleichtert!" },
+        { q: "Gelecek bir şeye sevinmek hangisi?", o: ["sich freuen über", "sich freuen auf", "sich ärgern über", "sich Sorgen machen"], a: 1, e: "auf = henüz olmamış, beklenen şey." },
+        { q: "\"Ich mache mir Sorgen.\" ne anlatır?", o: ["Kızgınım", "Endişeliyim", "Yorgunum", "Sıkıldım"], a: 1, e: "sich Sorgen machen (um) = (biri/bir şey için) endişelenmek." },
+        { q: "Hangisi en güçlü?", o: ["ein bisschen müde", "ziemlich müde", "wahnsinnig müde", "etwas müde"], a: 2, e: "wahnsinnig günlük dilde \"aşırı, delice\" anlamında güçlendirici." }
+      ], task: "Bugün nasıl hissettiğini 3 Almanca cümleyle yaz: bir duygu, nedeni (weil …) ve yoğunluğu (ziemlich, sehr …)." },
+
+      { id: "ds1-2", title: "Small Talk", min: 15, slides: [
+        { t: "intro", icon: "users", h: "Kahve makinesinin başında", p: "Almanya'da iş arkadaşlığı küçük sohbetlerle kurulur: hafta sonu, hava, tatil, çocuklar. Kısa ve hafif tutulur." },
+        { t: "cards", h: "Güvenli konular", p: "İlk sohbetlerde bu konular rahat; maaş, siyaset ve din ise genelde konuşulmaz.", items: [
+          ["cal", "Wochenende", "Und, wie war dein Wochenende?"], ["home", "Urlaub", "Fährst du dieses Jahr weg?"], ["users", "Familie und Hobbys", "Was machst du so in deiner Freizeit?"]] },
+        { t: "phrases", h: "Soru sormak", p: "Sohbeti açan ve sürdüren kalıplar.", items: [
+          ["Und, wie war dein Wochenende?", "Eee, hafta sonun nasıldı?"],
+          ["Hast du was Schönes gemacht?", "Güzel bir şey yaptın mı?"],
+          ["Bist du gut durchgekommen?", "Yolda sorun olmadı mı? (trafik vs.)"],
+          ["Was machst du so in deiner Freizeit?", "Boş zamanında neler yaparsın?"],
+          ["Schon was vor heute Abend?", "Bu akşam bir planın var mı?"]] },
+        { t: "phrases", h: "Tepki vermek", p: "Karşındakini dinlediğini gösteren kısa kelimeler. Almanlar bunları çok sık kullanır.", items: [
+          ["Echt? / Wirklich?", "Sahi mi?"], ["Wie schön!", "Ne güzel!"], ["Oh, schade.", "Ah, yazık."], ["Das kenne ich.", "Bilirim o durumu."], ["Na klar!", "Tabii ki!"], ["Ach so.", "Haa, anladım."]] },
+        { t: "flow", h: "Küçük sohbetin akışı", p: "Soru → cevap + karşı soru. Sadece cevap verip susmak sohbeti bitirir.", steps: [
+          ["Selam", "Morgen! Na, alles gut?"], ["Soru", "Wie war dein Wochenende?"], ["Cevap + ayrıntı", "Gut! Wir waren im Wald."], ["Karşı soru", "Und bei dir?"], ["Kapanış", "Okay, bis später!"]] }
+      ], quiz: [
+        { q: "\"Na, alles gut?\" sorusuna en doğal cevap?", o: ["Ja, danke. Und bei dir?", "Ich bin Controller.", "Nein.", "Bitte."], a: 0, e: "Cevap + karşı soru: sohbet devam eder." },
+        { q: "\"Oh, schade.\" ne zaman söylenir?", o: ["İyi bir haberde", "Kötü ya da üzücü bir haberde", "Selamlaşırken", "Teşekkür ederken"], a: 1, e: "schade = yazık." },
+        { q: "İlk sohbette genelde hangisi konuşulmaz?", o: ["Hafta sonu", "Tatil", "Maaş", "Hobiler"], a: 2, e: "Almanya'da maaş özel konu sayılır." },
+        { q: "\"Das kenne ich.\" ne anlatır?", o: ["O kişiyi tanıyorum", "O durumu ben de yaşadım", "Bilmiyorum", "Kabul etmiyorum"], a: 1, e: "Empati gösteren kısa bir tepki." }
+      ], task: "Yarın bir iş arkadaşına hafta sonunu sor ve en az bir karşı soru ekle. Konuşmayı akşam 3 cümleyle not et." },
+
+      { id: "ds1-3", title: "Empati: teselli, tebrik, özür", min: 15, slides: [
+        { t: "intro", icon: "users", h: "Doğru anda doğru cümle", p: "Birinin hasta olduğunu, bebeği olduğunu ya da canının sıkkın olduğunu duyunca ne diyeceğini bilmek ilişkiyi güçlendirir." },
+        { t: "table", h: "Duruma göre kalıp", p: "Bu tabloyu ezberle; her biri hazır bir cümle.", head: ["Durum", "Söyle"], rows: [
+          ["Hastalık", "Gute Besserung!"], ["Doğum günü", "Alles Gute zum Geburtstag!"], ["Başarı", "Herzlichen Glückwunsch!"], ["Kötü haber", "Das tut mir sehr leid."], ["Zor bir gün", "Kopf hoch!"], ["Sınav, sunum", "Viel Erfolg! / Ich drück dir die Daumen."]] },
+        { t: "phrases", h: "Dinlediğini göstermek", p: "Teselli ederken çözüm sunmadan önce anladığını göster.", items: [
+          ["Das klingt anstrengend.", "Kulağa yorucu geliyor."],
+          ["Das kann ich gut verstehen.", "Bunu çok iyi anlayabiliyorum."],
+          ["Kann ich dir irgendwie helfen?", "Sana bir şekilde yardım edebilir miyim?"],
+          ["Mach dir keinen Kopf.", "Kafana takma."],
+          ["Sag Bescheid, wenn du was brauchst.", "Bir şeye ihtiyacın olursa haber ver."]] },
+        { t: "compare", h: "Özür dilemek", p: "\"Sorry\" günlük dilde yaygın; ciddi durumda tam cümle kur.",
+          bad: ["Hafif", "Sorry!"], good: ["Ciddi", "Es tut mir leid, dass ich mich nicht gemeldet habe. Das war nicht in Ordnung."] },
+        { t: "cards", h: "Kültür notu", p: "Almanya'da bazı şeyler farklı işler.", items: [
+          ["cal", "Geburtstag", "Doğum günü önceden kutlanmaz; şans getirmez sayılır"], ["euro", "Kuchen", "İş yerinde doğum günü olan, pastayı kendisi getirir"], ["chat", "Daumen drücken", "Başparmak sıkmak = şans dilemek"]] }
+      ], quiz: [
+        { q: "Hasta bir arkadaşa ne denir?", o: ["Viel Erfolg!", "Gute Besserung!", "Prost!", "Guten Appetit!"], a: 1, e: "Gute Besserung = geçmiş olsun." },
+        { q: "\"Ich drück dir die Daumen.\" ne demek?", o: ["Seni tebrik ederim", "Sana şans diliyorum", "Seni anlıyorum", "Özür dilerim"], a: 1, e: "Kelimesi kelimesine \"başparmaklarımı senin için sıkıyorum\"." },
+        { q: "Almanya'da doğum günü ne zaman kutlanmaz?", o: ["Aynı gün", "Önceden", "Sonradan", "Hafta sonu"], a: 1, e: "Önceden kutlamak uğursuz sayılır." },
+        { q: "\"Das klingt anstrengend.\" ne işe yarar?", o: ["Eleştirmek", "Empati göstermek", "Reddetmek", "Davet etmek"], a: 1, e: "Karşındakinin zorluğunu kabul edersin." }
+      ], task: "Bu hafta birine (iş arkadaşı, komşu, kulüpten biri) tablodaki kalıplardan birini gerçekten söyle. Kime, hangisini söylediğini not et." },
+
+      { id: "ds1-4", title: "Davet, buluşma ve gündelik dil", min: 15, slides: [
+        { t: "intro", icon: "cal", h: "İşten sonra", p: "Davet etmek, kibarca reddetmek ve gündelik konuşma dili. Kulüpte, komşularla ve iş arkadaşlarıyla en çok bunlara ihtiyaç var." },
+        { t: "phrases", h: "Davet etmek ve öneri yapmak", p: "Hafif ve baskısız kalıplar.", items: [
+          ["Hast du Lust auf einen Kaffee?", "Bir kahveye ne dersin?"],
+          ["Wie wär's mit Samstag?", "Cumartesiye ne dersin?"],
+          ["Kommst du mit?", "Sen de gelir misin?"],
+          ["Wir grillen am Sonntag. Hast du Zeit?", "Pazar mangal yapıyoruz. Vaktin var mı?"]] },
+        { t: "compare", h: "Kibarca reddetmek", p: "Almanlar doğrudan söyler ama nedenini ve alternatifini eklemek nazik olur.",
+          bad: ["Sert", "Nein, keine Zeit."], good: ["Nazik", "Leider klappt es am Samstag nicht. Aber wie wär's nächste Woche?"] },
+        { t: "table", h: "Gündelik dil (Umgangssprache)", p: "Bunları ders kitabında görmezsin ama her gün duyarsın.", head: ["Söylenen", "Anlamı"], rows: [
+          ["Ich hab keinen Bock.", "Hiç canım istemiyor."], ["Passt schon.", "Sorun değil, olur."], ["Kein Ding!", "Önemli değil, ne demek!"], ["Feierabend!", "Mesai bitti!"], ["Krass!", "Vay be! (şaşkınlık)"], ["Läuft bei dir.", "İşlerin yolunda."]] },
+        { t: "flow", h: "Bir buluşmayı ayarlamak", p: "Teklif → gün → saat → yer → teyit.", steps: [
+          ["Teklif", "Hast du Lust auf ein Bier?"], ["Gün", "Passt dir Freitag?"], ["Saat", "So gegen sieben?"], ["Yer", "Im Vereinsheim?"], ["Teyit", "Super, dann bis Freitag!"]] }
+      ], quiz: [
+        { q: "\"Hast du Lust auf …?\" ne için kullanılır?", o: ["Bir şey önermek, davet etmek", "Özür dilemek", "Şikâyet etmek", "Veda etmek"], a: 0, e: "Lust haben auf = canı istemek." },
+        { q: "En nazik ret hangisi?", o: ["Nein.", "Keine Zeit.", "Leider klappt es nicht, aber wie wär's nächste Woche?", "Vielleicht."], a: 2, e: "Neden + alternatif." },
+        { q: "\"Kein Ding!\" ne demek?", o: ["Hiçbir şey yok", "Önemli değil, ne demek", "Bir şey yok mu?", "Olmaz"], a: 1, e: "Teşekküre karşılık samimi cevap." },
+        { q: "\"Feierabend\" nedir?", o: ["Bayram", "Mesainin bitişi", "Doğum günü partisi", "Tatil"], a: 1, e: "Schönen Feierabend! = İyi akşamlar (işten çıkarken)." }
+      ], task: "Kulüpten ya da işten birini Almanca bir kahveye/maça davet eden 2 cümlelik mesaj yaz ve gönder." }
+    ]},
     { id: "de2", title: "Sözlü iletişim ve toplantı yönetimi", goal: "Toplantı yönetmek, telefon, kısa sunum", lessons: [] },
     { id: "de3", title: "Teamleitung dili", goal: "Görev dağıtmak, geri bildirim, çatışma", lessons: [
       { id: "de3-1", title: "Görev vermek ve devretmek", min: 15, slides: [
@@ -604,5 +687,9 @@ window.WRITE_Q = {
   "de3-4": { q: "Almanca yaz: Bugün üç konumuz var, sırayla kısa bir ara durum lütfen.", model: "Heute haben wir drei Themen. Kurzer Zwischenstand bitte, reihum.", keys: ["drei themen", "zwischenstand", "reihum"] },
   "car3-1": { q: "Almanca yaz: Hızlı yerine dikkatli çalışmayı tercih ederim.", model: "Ich arbeite lieber sorgfältig als schnell.", keys: ["lieber", "sorgfältig", "als schnell"] },
   "car3-2": { q: "Almanca yaz: Dört yıl boyunca yaklaşık 40 kişilik bir ekibi yönettim.", model: "Ich habe vier Jahre ein Team von rund 40 Personen geführt.", keys: ["vier jahre", "team", "40", "geführt"] },
+  "ds1-1": { q: "Almanca yaz: Hafta sonunu dört gözle bekliyorum, çünkü ailemle göle gidiyoruz.", model: "Ich freue mich auf das Wochenende, weil wir mit der Familie an den See fahren.", keys: ["freue mich auf", "wochenende", "weil", "fahren"] },
+  "ds1-2": { q: "İş arkadaşına hafta sonunu sor ve kendi hafta sonundan bir cümle ekle (Almanca).", model: "Wie war dein Wochenende? Meins war gut, wir waren im Wald spazieren.", keys: ["wie war", "wochenende", "war"] },
+  "ds1-3": { q: "Hasta bir iş arkadaşına kısa bir Almanca mesaj yaz (geçmiş olsun + yardım teklifi).", model: "Gute Besserung! Sag Bescheid, wenn ich dir irgendwie helfen kann.", keys: ["gute besserung", "bescheid", "helfen"] },
+  "ds1-4": { q: "Daveti kibarca reddet ve başka bir gün öner (Almanca).", model: "Leider klappt es am Samstag nicht. Aber wie wär's nächste Woche?", keys: ["leider", "klappt", "wie wär"] },
   "pbi1-3": { q: "Assets tablosundaki Miete sütununu toplayan 'Gesamtmiete' measure'ını yaz.", model: "Gesamtmiete = SUM ( Assets[Miete] )", keys: ["gesamtmiete", "sum", "assets[miete]"], code: true }
 };

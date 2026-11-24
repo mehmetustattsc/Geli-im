@@ -597,7 +597,7 @@
 
   /* ---------- podcast oynatıcı ---------- */
   var PODS = null, AU = null, lastT = 0, saveT = 0, curEp = null;
-  var PODCAT = [["all", "Hepsi"], ["lern", "Almanca öğren"], ["nat", "Doğal Almanca"], ["ki", "Yapay zekâ"], ["is", "İş ve kariyer"]];
+  var PODCAT = [["all", "Hepsi"], ["lern", "Almanca öğren"], ["uyku", "Uyku"], ["nat", "Doğal Almanca"], ["ki", "Yapay zekâ"], ["is", "İş ve kariyer"]];
   function loadPods(cb) {
     fetch("data/podcasts.json?" + TODAY, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) { PODS = j || { eps: [] }; cb && cb(); }).catch(function () { PODS = { eps: [], offline: true }; cb && cb(); });
@@ -649,6 +649,11 @@
   }
   var podCat = "all";
   function vListen() {
+    var seg = '<div class="seg"><button data-lm="pod" class="' + (listenMode === "pod" ? "on" : "") + '">Podcast</button><button data-lm="story" class="' + (listenMode === "story" ? "on" : "") + '">Hikâyeler</button></div>';
+    if (listenMode === "story") return seg + vStories();
+    return seg + vListenPod();
+  }
+  function vListenPod() {
     if (!PODS) { loadPods(render); return '<p class="muted center">Yükleniyor…</p>'; }
     var wk = weekListen(), goal = S.pod.goal || 150, nx = nextEp();
     var h = '<section class="hero listen"><div class="hero-l"><span class="lbl">Bu hafta</span><b class="cnt">' + wk + '</b><span class="lbl">dk</span></div><div class="hero-r"><p>Yolda Almanca dinlemek, en çok saat biriktireceğin yer. Hedef: haftada ' + goal + ' dakika.</p><div class="tl"><i style="width:' + Math.min(100, wk / goal * 100) + '%"></i></div><small>' + Math.min(100, Math.round(wk / goal * 100)) + "% tamam</small></div></section>";
@@ -674,7 +679,7 @@
     if (!curEp) { if (el) el.remove(); return; }
     if (!el) { el = document.createElement("div"); el.id = "mini"; document.body.appendChild(el); }
     var pr = AU && AU.duration ? AU.currentTime / AU.duration : 0, rate = S.pod.rate || 1;
-    el.innerHTML = '<div class="mbar"><i style="width:' + pr * 100 + '%"></i></div><div class="mrow"><button data-act="aback" aria-label="15 sn geri">' + ic("rew") + '</button><button data-ep="' + esc(curEp.id) + '" class="mpp" aria-label="Oynat/Durdur">' + ic(AU && !AU.paused ? "pause" : "play") + '</button><button data-act="afwd" aria-label="30 sn ileri">' + ic("fwd") + '</button><div class="mt"><b>' + esc(curEp.t) + "</b><small>" + esc(curEp.show) + '</small></div><button data-act="arate" class="rt">' + String(rate).replace(".", ",") + "×</button></div>";
+    el.innerHTML = '<div class="mbar"><i style="width:' + pr * 100 + '%"></i></div><div class="mrow"><button data-act="aback" aria-label="15 sn geri">' + ic("rew") + '</button><button data-ep="' + esc(curEp.id) + '" class="mpp" aria-label="Oynat/Durdur">' + ic(AU && !AU.paused ? "pause" : "play") + '</button><button data-act="afwd" aria-label="30 sn ileri">' + ic("fwd") + '</button><div class="mt"><b>' + esc(curEp.t) + "</b><small>" + esc(curEp.show) + '</small></div><button data-act="arate" class="rt">' + String(rate).replace(".", ",") + '×</button><button data-act="asleep" class="rt">' + ic("clock") + (sleepEnd ? Math.max(1, Math.round((sleepEnd - Date.now()) / 60000)) + "′" : "") + "</button></div>";
   }
 
   /* ---------- oyunlar: ortak ---------- */
@@ -950,6 +955,87 @@
     return q;
   }
 
+  /* ---------- uyku öncesi hikâyeler (sesli okuma) ---------- */
+  var ST = null, listenMode = "pod";
+  function deVoice() {
+    var vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [], de = vs.filter(function (v) { return /^de/i.test(v.lang); });
+    var pref = ["Anna", "Helena", "Petra", "Markus", "Yannick", "Martin"];
+    for (var i = 0; i < pref.length; i++) for (var j = 0; j < de.length; j++) if (de[j].name.indexOf(pref[i]) >= 0) return de[j];
+    return de[0] || null;
+  }
+  function vStories() {
+    var h = '<section class="card"><h3>Uyku öncesi hikâyeler</h3><p>Sakin anlatılan, duygular ve gündelik hayat üzerine Almanca hikâyeler. Yatmadan önce 20–30 dakika dinle; zamanlayıcı dolunca okuma kendiliğinden durur.</p></section>';
+    (window.STORIES || []).forEach(function (s, i) {
+      var dn = (S.stories || {})[s.id];
+      h += '<button class="story" data-story="' + i + '"><span class="snum">' + (i + 1) + '</span><span class="si"><b>' + esc(s.title) + "</b><small>" + esc(s.tr) + " · " + esc(s.mood) + " · " + s.s.length + " cümle</small></span>" + (dn ? ic("check") : ic("play")) + "</button>";
+    });
+    h += '<p class="muted small">Hikâyeler telefonun Almanca sesiyle okunur. Ekran kilitlenince okuma durabilir; bu yüzden okurken ekran açık kalır, istersen <b>Karanlık ekran</b>la karartabilirsin. Kilit ekranında dinlemek istersen Podcast sekmesindeki <b>Uyku</b> bölümünü zamanlayıcıyla kullan.</p>';
+    return h;
+  }
+  function openStory(ix) {
+    ST = { ix: ix, si: 0, playing: false, tr: S.storyTr !== false, rate: S.storyRate || 0.85, tmi: 0, end: 0, dark: false };
+    drawStory();
+  }
+  function drawStory() {
+    var s = STORIES[ST.ix], el = document.getElementById("player");
+    if (!el) { el = document.createElement("div"); el.id = "player"; document.body.appendChild(el); }
+    el.style.setProperty("--c", "#3b2a57"); document.body.classList.add("noscroll");
+    el.classList.toggle("dark", ST.dark);
+    var left = ST.end ? Math.max(0, Math.round((ST.end - Date.now()) / 60000)) : 0;
+    var h = '<div class="pl-top"><button data-act="stclose" aria-label="Kapat">' + ic("x") + '</button><b class="rt-t">' + esc(s.title) + '</b><button class="stbtn" data-act="stdark">' + (ST.dark ? "Aydınlık" : "Karanlık ekran") + '</button></div><div class="pl-body reader" id="stbody">';
+    if (!ST.dark) h += '<span class="tag">' + ic("book") + esc(s.tr) + " · " + esc(s.mood) + "</span>";
+    h += '<div class="sts">' + s.s.map(function (x, i) { return '<p class="stl' + (i === ST.si && ST.playing ? " on" : "") + '" data-sts="' + i + '" id="stl' + i + '"><span>' + esc(x[0]) + "</span>" + (ST.tr && !ST.dark ? "<small>" + esc(x[1]) + "</small>" : "") + "</p>"; }).join("") + "</div>";
+    if (!ST.dark) h += '<h4 class="cwh">Önemli kelimeler</h4><div class="v-phr">' + s.v.map(function (v) { return "<li><b>" + esc(v[0]) + "</b><small>" + esc(v[1]) + "</small></li>"; }).join("") + "</div>";
+    h += '</div><div class="pl-foot stfoot">' +
+      '<button class="btn sm ghost" data-act="strate">' + String(ST.rate).replace(".", ",") + "×</button>" +
+      '<button class="btn sm ghost" data-act="sttimer">' + ic("clock") + (ST.end ? left + " dk" : "Zamanlayıcı") + "</button>" +
+      '<button class="btn mpp2" data-act="stplay">' + ic(ST.playing ? "pause" : "play") + "</button>" +
+      '<button class="btn sm ghost" data-act="sttr">' + (ST.tr ? "TR gizle" : "TR göster") + "</button></div>";
+    el.innerHTML = h;
+    var cur = document.getElementById("stl" + ST.si); if (cur && ST.playing) cur.scrollIntoView({ block: "center" });
+  }
+  var wl = null;
+  function stSpeak() {
+    if (!ST || !ST.playing) return;
+    var s = STORIES[ST.ix];
+    if (ST.end && Date.now() > ST.end) { stStop(); ST.end = 0; drawStory(); return; }
+    if (ST.si >= s.s.length) {
+      S.stories = S.stories || {}; S.stories[s.id] = TODAY; save();
+      if (ST.end) { ST.ix = (ST.ix + 1) % STORIES.length; ST.si = 0; drawStory(); setTimeout(stSpeak, 2500); }
+      else { ST.playing = false; ST.si = 0; drawStory(); relWL(); }
+      return;
+    }
+    var u = new SpeechSynthesisUtterance(s.s[ST.si][0]), v = deVoice();
+    u.lang = "de-DE"; if (v) u.voice = v; u.rate = ST.rate; u.pitch = 1;
+    var t0 = Date.now();
+    u.onend = function () {
+      S.listen[TODAY] = (S.listen[TODAY] || 0) + (Date.now() - t0) / 1000;
+      if (!ST || !ST.playing) return;
+      ST.si++; drawStory(); setTimeout(stSpeak, 700);
+    };
+    u.onerror = function () { if (ST) { ST.playing = false; drawStory(); } };
+    speechSynthesis.speak(u);
+  }
+  function relWL() { try { if (wl) wl.release(); } catch (e) {} wl = null; save(); }
+  function stStop() { if (window.speechSynthesis) speechSynthesis.cancel(); if (ST) ST.playing = false; relWL(); }
+  function stPlay() {
+    if (!window.speechSynthesis) { toast("Bu tarayıcı sesli okumayı desteklemiyor"); return; }
+    if (ST.playing) { stStop(); drawStory(); return; }
+    if (!deVoice()) toast("Almanca ses bulunamadı; Ayarlar → Erişilebilirlik → Seslendirilen İçerik → Sesler → Almanca'dan bir ses indir");
+    ST.playing = true; drawStory();
+    try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function (x) { wl = x; }).catch(function () {}); } catch (e) {}
+    stSpeak();
+  }
+  if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function () {};
+
+  /* ---------- podcast uyku zamanlayıcısı ---------- */
+  var sleepEnd = 0, sleepT = null;
+  function setSleep(min) {
+    clearTimeout(sleepT); sleepEnd = min ? Date.now() + min * 60000 : 0;
+    if (min) sleepT = setTimeout(function () { if (AU) AU.pause(); sleepEnd = 0; drawMini(); }, min * 60000);
+    drawMini();
+  }
+
   /* ---------- fikir süzgeci ---------- */
   function openIdea() {
     var act = S.projects.filter(function (p) { return p.status === "aktif" && p.cat !== "aile"; });
@@ -1016,7 +1102,7 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read],[data-wa]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read],[data-wa],[data-lm],[data-story],[data-sts]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
@@ -1033,6 +1119,9 @@
     if (d.ep) return playEp(d.ep);
     if (d.game) return openGame(d.game);
     if (d.wa != null && G && G.wq) return wAnswer(+d.wa);
+    if (d.lm) { listenMode = d.lm; return render(); }
+    if (d.story != null) return openStory(+d.story);
+    if (d.sts != null && ST) { var was = ST.playing; stStop(); ST.si = +d.sts; if (was) { ST.playing = true; drawStory(); stSpeak(); } else drawStory(); return; }
     if (d.opp != null && OP && OP.res == null) { OP.picked.push(+d.opp); return P ? drawPlayer() : drawGame(); }
     if (d.opu != null && OP && OP.res == null) { OP.picked.splice(+d.opu, 1); return P ? drawPlayer() : drawGame(); }
     if (d.cwl && G && G.kind === "cw") { G.cw.lang = d.cwl; return drawGame(); }
@@ -1055,6 +1144,13 @@
       case "gnext": G.ix++; if (G.ix >= G.items.length) return finishGame(); if (G.kind === "wort") G.wq = mkWQ(G.items[G.ix]); else OP = mkOP(G.items[G.ix], G.kind); return drawGame();
       case "wskip": return wAnswer(-1);
       case "gfinish": return finishGame();
+      case "stplay": return stPlay();
+      case "stclose": stStop(); ST = null; var pe2 = document.getElementById("player"); if (pe2) pe2.remove(); document.body.classList.remove("noscroll"); return render();
+      case "sttr": ST.tr = !ST.tr; S.storyTr = ST.tr; save(); return drawStory();
+      case "stdark": ST.dark = !ST.dark; return drawStory();
+      case "strate": var rr = [0.7, 0.85, 1], ix2 = rr.indexOf(ST.rate); ST.rate = rr[(ix2 + 1) % rr.length]; S.storyRate = ST.rate; save(); return drawStory();
+      case "sttimer": var ts = [0, 15, 30, 45]; ST.tmi = ((ST.tmi || 0) + 1) % ts.length; ST.end = ts[ST.tmi] ? Date.now() + ts[ST.tmi] * 60000 : 0; toast(ST.end ? ts[ST.tmi] + " dakika sonra duracak; hikâyeler arka arkaya okunur" : "Zamanlayıcı kapalı"); return drawStory();
+      case "asleep": var tl = [0, 15, 30, 45, 60], cm = sleepEnd ? Math.round((sleepEnd - Date.now()) / 60000) : 0, nm2 = tl.filter(function (m) { return m > cm + 1; })[0] || 0; setSleep(nm2); toast(nm2 ? nm2 + " dakika sonra duracak" : "Uyku zamanlayıcısı kapalı"); return;
       case "gclose": return closeGame();
       case "gagain": var gk = G.kind; return openGame(gk);
       case "cwend": G.cw.done = true; G.cw.sel = null; return drawGame();

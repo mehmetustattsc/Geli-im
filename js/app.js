@@ -513,6 +513,12 @@
   }
   function curQ() { if (P.phase === "slides" && P.seq[P.i] && P.seq[P.i].k === "c") return { it: { q: P.seq[P.i].q }, key: "c" + P.i }; return P.phase === "warm" ? { it: P.warm[P.wi], key: "w" + P.wi } : { it: P.qs[P.qi], key: "q" + P.qi }; }
   function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  var lastPos = -1;
+  function balancedOrder(n, a) {
+    var ord, tries = 0;
+    do { ord = shuffle(Array.apply(null, { length: n }).map(function (_, i) { return i; })); } while (ord.indexOf(a) === lastPos && ++tries < 6);
+    lastPos = ord.indexOf(a); return ord;
+  }
   function renderQ(it, key, label) {
     var Q = it.q, A = P.ans[key], h = '<div class="slide quiz"><span class="tag">' + ic(label === "Isınma" ? "refresh" : "star") + label + (it.tr && TRK[it.tr] && label !== "Test" ? " · " + esc(TRK[it.tr].short) : "") + "</span><h2>" + esc(Q.q) + "</h2>";
     if (Q.k === "w") {
@@ -525,11 +531,13 @@
         h += '<div class="rate">' + [[1, "Doğru"], [0.5, "Kısmen"], [0, "Yanlış"]].map(function (r) { return '<button data-rate="' + r[0] + '" class="' + (A.pts === r[0] ? "on " : "") + (A.pts == null && sug === r[0] ? "sug" : "") + '">' + r[1] + "</button>"; }).join("") + "</div>";
       }
     } else {
-      h += '<div class="opts">' + Q.o.map(function (o, k) {
+      P.ord = P.ord || {};
+      var ord = P.ord[key] || (P.ord[key] = balancedOrder(Q.o.length, Q.a));
+      h += '<div class="opts">' + ord.map(function (k, j) {
         var c = !A ? "" : k === Q.a ? "right" : k === A.v ? "wrong" : "dim";
-        return '<button data-ans="' + k + '" class="' + c + '"' + (A ? " disabled" : "") + "><span>" + String.fromCharCode(65 + k) + "</span>" + esc(o) + "</button>";
+        return '<button data-ans="' + k + '" class="' + c + '"' + (A ? " disabled" : "") + "><span>" + String.fromCharCode(65 + j) + "</span>" + esc(Q.o[k]) + "</button>";
       }).join("") + "</div>";
-      if (A) h += '<div class="expl ' + (A.pts ? "ok" : "no") + '"><b>' + (A.pts ? "Doğru." : "Doğru cevap: " + String.fromCharCode(65 + Q.a)) + "</b> " + esc(Q.e || "") + "</div>";
+      if (A) h += '<div class="expl ' + (A.pts ? "ok" : "no") + '"><b>' + (A.pts ? "Doğru." : "Doğru cevap: " + String.fromCharCode(65 + ord.indexOf(Q.a))) + "</b> " + esc(Q.e || "") + "</div>";
     }
     return h + "</div>";
   }
@@ -879,7 +887,7 @@
     var bank = GM.wort || [], dir = Math.random() < 0.5 ? "de" : "tr", same = bank.filter(function (x) { return x.t === it.t && x.id !== it.id; });
     if (same.length < 3) same = bank.filter(function (x) { return x.id !== it.id; });
     var f = dir === "de" ? "tr" : "w", right = it[f], wr = shuffle(same).map(function (x) { return x[f]; }).filter(function (x, i, a) { return x !== right && a.indexOf(x) === i; }).slice(0, 3);
-    var o = shuffle([right].concat(wr));
+    var base = [right].concat(wr), ord = balancedOrder(base.length, 0), o = ord.map(function (i) { return base[i]; });
     return { it: it, dir: dir, o: o, a: o.indexOf(right), v: null };
   }
   function renderWQ(q) {

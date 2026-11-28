@@ -33,6 +33,9 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 ## Telafi
 - Bugünün dersi (ya da tekrar/dinlenme günü) bitince Bugün ekranında son 14 günün kaçırılan planlı günleri çıkar; telafi oturumu `for: tarih` ile kaydedilir, takvimde o gün çizgili "tamam" görünür. Bugünün tamamlanması yalnızca `for` olmayan oturumlarla sayılır.
 
+## Yazılı cevap denetimi
+- `wdiff` örnek cevapla kelime kelime karşılaştırır (yakın yazımlar turuncu, `CONFUSE` sözlüğü anders/anderes gibi karışan çiftleri açıklar); Almanca cevaplar LanguageTool genel API'sine (api.languagetool.org, de-DE) gönderilir. `wScore` puan önerir ve ön-seçer; kullanıcı değiştirebilir. Kod cevaplarında yalnızca karşılaştırma.
+
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.
 - Yazılı sorular `WRITE_Q` (content.js sonunda): kullanıcı yazar, örnek cevap + anahtar kelimelerle karşılaştırıp kendini puanlar (1 / 0,5 / 0).

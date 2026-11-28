@@ -531,6 +531,72 @@
   }
   function curQ() { if (P.phase === "slides" && P.seq[P.i] && P.seq[P.i].k === "c") return { it: { q: P.seq[P.i].q }, key: "c" + P.i }; return P.phase === "warm" ? { it: P.warm[P.wi], key: "w" + P.wi } : { it: P.qs[P.qi], key: "q" + P.qi }; }
   function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  /* ---------- yazılı cevap denetimi ---------- */
+  var CONFUSE = {
+    "anderes|anders": "anders = farklı şekilde (Ich sehe das anders). anderes = başka bir şey (etwas anderes).",
+    "das|dass": "dass = ki (bağlaç, yan cümle başlatır). das = artikel ya da zamir.",
+    "wen|wenn": "wenn = eğer / -dığında. wen = kimi.",
+    "seid|seit": "seit = -den beri. seid = sein fiili (ihr seid).",
+    "den|dem": "Hâl eki: den = -i hâli (Akkusativ), dem = -e hâli (Dativ).",
+    "einen|einem": "einen = Akkusativ, einem = Dativ.",
+    "wieder|wider": "wieder = tekrar. wider = -e karşı (nadir).",
+    "mir|mich": "mir = bana (Dativ), mich = beni (Akkusativ).",
+    "dir|dich": "dir = sana (Dativ), dich = seni (Akkusativ)."
+  };
+  function tok(s) { return String(s || "").replace(/[„“"'.,!?;:()]/g, " ").split(/\s+/).filter(Boolean); }
+  function lev(a, b) { var m = a.length, n = b.length, d = []; for (var i = 0; i <= m; i++) { d[i] = [i]; } for (var j = 1; j <= n; j++) d[0][j] = j; for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[m][n]; }
+  function wdiff(user, model) {
+    var u = tok(user), m = tok(model), U = u.map(function (x) { return x.toLowerCase(); }), M = m.map(function (x) { return x.toLowerCase(); });
+    var L = []; for (var i = 0; i <= U.length; i++) { L[i] = []; for (var j = 0; j <= M.length; j++) L[i][j] = 0; }
+    for (i = U.length - 1; i >= 0; i--) for (j = M.length - 1; j >= 0; j--) L[i][j] = U[i] === M[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var ops = []; i = 0; j = 0;
+    while (i < U.length && j < M.length) { if (U[i] === M[j]) { ops.push(["eq", u[i], m[j]]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) { ops.push(["ins", u[i]]); i++; } else { ops.push(["del", null, m[j]]); j++; } }
+    while (i < U.length) ops.push(["ins", u[i++]]); while (j < M.length) ops.push(["del", null, m[j++]]);
+    var out = [];
+    for (var k = 0; k < ops.length; k++) {
+      var o = ops[k], nx = ops[k + 1];
+      if (o[0] === "ins" && nx && nx[0] === "del" || o[0] === "del" && nx && nx[0] === "ins") { var uw = o[0] === "ins" ? o[1] : nx[1], mw = o[0] === "del" ? o[2] : nx[2], dd = lev(uw.toLowerCase(), mw.toLowerCase()); out.push([dd <= 2 || mw.toLowerCase().indexOf(uw.toLowerCase()) === 0 || uw.toLowerCase().indexOf(mw.toLowerCase()) === 0 ? "near" : "sub", uw, mw]); k++; }
+      else out.push(o);
+    }
+    return out;
+  }
+  function ltCheck(text) {
+    return fetch("https://api.languagetool.org/v2/check", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "text=" + encodeURIComponent(text) + "&language=de-DE&motherTongue=tr" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { return j ? j.matches.map(function (m) { return { msg: m.message, rep: (m.replacements || []).slice(0, 3).map(function (x) { return x.value; }), bad: text.substr(m.offset, m.length), minor: /TYPOGRAPHY|PUNCTUATION|CASING/.test((m.rule && m.rule.category && m.rule.category.id) || "") && !/UPPERCASE_SENTENCE_START/.test((m.rule || {}).id || "") }; }) : "err"; })
+      .catch(function () { return "err"; });
+  }
+  function wScore(Q, A) {
+    var t = norm(A.text), ok = Q.keys.filter(function (k) { return t.indexOf(norm(k)) >= 0; }).length / Q.keys.length;
+    var d = wdiff(A.text, Q.model), exact = d.every(function (o) { return o[0] === "eq"; }), near = d.filter(function (o) { return o[0] === "near"; }).length;
+    var lt = Array.isArray(A.lt) ? A.lt.filter(function (m) { return !m.minor; }).length : 0;
+    if (exact) return 1;
+    if (ok >= 0.8 && !lt && !near) return 1;
+    if (ok >= 0.8 || (ok >= 0.4 && lt <= 1)) return 0.5;
+    return 0;
+  }
+  function renderWCheck(Q, A) {
+    var d = wdiff(A.text, Q.model), notes = [], h = "";
+    h += '<div class="wc"><span class="wcl">Senin cevabın</span><p class="wcu">' + d.filter(function (o) { return o[0] !== "del"; }).map(function (o) {
+      return o[0] === "eq" ? '<span class="ok">' + esc(o[1]) + "</span>" : o[0] === "near" ? '<span class="nr">' + esc(o[1]) + "</span>" : '<span class="bd">' + esc(o[1]) + "</span>";
+    }).join(" ") + '</p><span class="wcl">Örnek cevap</span><p class="wcm">' + d.filter(function (o) { return o[0] !== "ins"; }).map(function (o) {
+      return o[0] === "eq" ? esc(o[2]) : '<span class="wms">' + esc(o[2]) + "</span>";
+    }).join(" ") + "</p>";
+    d.forEach(function (o) { if (o[0] === "near" || o[0] === "sub") { var a = o[1].toLowerCase(), b = o[2].toLowerCase(), key = [a, b].sort().join("|"), c = CONFUSE[key]; notes.push("<b>" + esc(o[1]) + "</b> → <b>" + esc(o[2]) + "</b>" + (c ? ": " + esc(c) : o[0] === "near" ? ": yazım ya da ek farkı" : "")); } });
+    if (notes.length) h += '<ul class="wcn">' + notes.map(function (n) { return "<li>" + n + "</li>"; }).join("") + "</ul>";
+    h += "</div>";
+    if (!Q.code) {
+      if (A.lt === "loading") h += '<p class="muted small">' + ic("refresh") + " Dilbilgisi kontrol ediliyor…</p>";
+      else if (A.lt === "err") h += '<p class="muted small">Dilbilgisi denetimine ulaşılamadı (internet?). Karşılaştırmaya göre puanla.</p>';
+      else if (Array.isArray(A.lt)) {
+        var main = A.lt.filter(function (m) { return !m.minor; });
+        h += '<div class="lt ' + (main.length ? "has" : "") + '"><b>' + ic(main.length ? "alert" : "check") + (main.length ? " Dilbilgisi: " + main.length + " sorun" : " Dilbilgisi: hata bulunmadı") + "</b>" +
+          A.lt.map(function (m) { return "<p" + (m.minor ? ' class="minor"' : "") + "><span>„" + esc(m.bad) + "”</span>" + (m.rep.length ? " → " + esc(m.rep.join(" / ")) : "") + "<br><small>" + esc(m.msg) + "</small></p>"; }).join("") + "</div>";
+      }
+    }
+    return h;
+  }
+
   var lastPos = -1;
   function balancedOrder(n, a) {
     var ord, tries = 0;
@@ -542,10 +608,9 @@
     if (Q.k === "w") {
       h += '<textarea id="wans" class="wans' + (Q.code ? " mono" : "") + '" rows="' + (Q.code ? 5 : 3) + '" placeholder="Cevabını yaz…"' + (A ? " disabled" : "") + ' autocapitalize="off" autocorrect="off" spellcheck="false">' + esc(A ? A.text : "") + "</textarea>";
       if (A) {
-        var t = norm(A.text), hits = Q.keys.map(function (k) { return [k, t.indexOf(norm(k)) >= 0]; }), ok = hits.filter(function (x) { return x[1]; }).length / hits.length;
-        var sug = ok >= 0.8 ? 1 : ok >= 0.4 ? 0.5 : 0;
-        h += '<div class="v-out"><span>Örnek cevap</span><pre class="v-code">' + (Q.code ? hl(Q.model) : esc(Q.model)) + '</pre></div><div class="keys">' + hits.map(function (x) { return '<span class="' + (x[1] ? "hit" : "miss") + '">' + ic(x[1] ? "check" : "x") + esc(x[0]) + "</span>"; }).join("") + "</div>";
-        h += '<p class="muted small">Örnekle karşılaştır ve kendini dürüstçe puanla. Yazımın farklı olması sorun değil; önemli olan anlamın ve yapının doğru olması.</p>';
+        h += renderWCheck(Q, A);
+        var sug = A.lt === "loading" ? null : wScore(Q, A);
+        if (sug != null) h += '<p class="muted small">Uygulamanın önerisi: <b>' + (sug === 1 ? "Doğru" : sug === 0.5 ? "Kısmen" : "Yanlış") + '</b>. Farklı ama doğru bir cümle kurduysan puanı değiştirebilirsin.</p>';
         h += '<div class="rate">' + [[1, "Doğru"], [0.5, "Kısmen"], [0, "Yanlış"]].map(function (r) { return '<button data-rate="' + r[0] + '" class="' + (A.pts === r[0] ? "on " : "") + (A.pts == null && sug === r[0] ? "sug" : "") + '">' + r[1] + "</button>"; }).join("") + "</div>";
       }
     } else {
@@ -1189,7 +1254,12 @@
         if (P.phase === "warm") { if (P.wi < P.warm.length - 1) P.wi++; else P.phase = "slides"; }
         else if (P.qi < P.qs.length - 1) P.qi++; else P.phase = "result";
         return drawPlayer();
-      case "wcheck": var tx2 = val("wans").trim(); if (!tx2) { toast("Önce cevabını yaz"); return; } P.ans[curQ().key] = { text: tx2, pts: null }; return drawPlayer();
+      case "wcheck":
+        var tx2 = val("wans").trim(); if (!tx2) { toast("Önce cevabını yaz"); return; }
+        var cq = curQ(), A2 = { text: tx2, pts: null, lt: cq.it.q.code ? null : "loading" }; P.ans[cq.key] = A2;
+        if (cq.it.q.code) A2.pts = wScore(cq.it.q, A2);
+        else ltCheck(tx2).then(function (res) { A2.lt = res; if (A2.pts == null) A2.pts = wScore(cq.it.q, A2); if (P && P.ans[cq.key] === A2) drawPlayer(); });
+        return drawPlayer();
       case "aback": if (AU) AU.currentTime = Math.max(0, AU.currentTime - 15); return;
       case "afwd": if (AU) AU.currentTime = Math.min(AU.duration || 1e9, AU.currentTime + 30); return;
       case "arate": var rs = [0.8, 1, 1.15, 1.3], ri = rs.indexOf(S.pod.rate || 1); S.pod.rate = rs[(ri + 1) % rs.length]; if (AU) AU.playbackRate = S.pod.rate; save(); return drawMini();

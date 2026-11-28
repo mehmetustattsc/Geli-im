@@ -138,7 +138,19 @@
     if (p === "off") return { kind: "off" };
     return { kind: "track", tid: p };
   }
-  function sessionsOn(d) { return S.sessions.filter(function (x) { return x.date === d; }); }
+  function sessionsOn(d) { return S.sessions.filter(function (x) { return (x.date === d && !x.for) || x.for === d; }); }
+  function madeUp(d) { return S.sessions.some(function (x) { return x.for === d && x.pass; }) && !S.sessions.some(function (x) { return x.date === d && !x.for && x.pass; }); }
+  function missedDays() {
+    var out = [];
+    for (var i = 1; i <= 14; i++) {
+      var d = addDays(TODAY, -i); if (d < S.start) break;
+      var p = planFor(d); if (p === "review" || p === "off") continue;
+      if (sessionsOn(d).some(function (x) { return x.pass; })) continue;
+      var tid = p === "weak" ? (focusTrack() || { t: {} }).t.id : p, n = tid ? nextLesson(tid) : null;
+      if (n && n.lesson) out.push({ d: d, tid: tid, l: n.lesson });
+    }
+    return out;
+  }
   function streak() {
     var n = 0, d = TODAY;
     if (!sessionsOn(d).length) d = addDays(d, -1);
@@ -224,7 +236,7 @@
       '<div class="hero-r"><p>' + esc(S.goal) + '</p><div class="tl"><i style="width:' + Math.min(100, Math.max(2, gone / total * 100)) + '%"></i></div><small>' + fmt(S.target) + "</small></div></section>";
     h += '<div class="chips"><span class="chip">' + ic("fire") + streak() + " gün seri</span><span class=\"chip\">" + ic("clock") + Math.round(totalMin() / 60 * 10) / 10 + " saat</span><span class=\"chip\">" + ic("check") + Object.keys(S.best).filter(done).length + " ders</span></div>";
 
-    var tp = todayPlan(), todayDone = sessionsOn(TODAY).some(function (s) { return s.pass; });
+    var tp = todayPlan(), todayDone = S.sessions.some(function (s) { return s.date === TODAY && !s.for && s.pass; });
     if (todayDone) {
       h += '<section class="card ok"><div class="row">' + ic("check", "big") + "<div><h3>Bugünkü çalışma tamam</h3><p>Yarın: " + esc(planLabel(planFor(addDays(TODAY, 1)))) + ". İstersen aşağıdan bir ders daha seçebilirsin.</p></div></div></section>";
     } else if (tp.kind === "review") {
@@ -237,6 +249,12 @@
       h += '<section class="card"><h3>Bütün dersler tamam</h3><p>Yeni modüllerin içeriği eklenince burada görünecek.</p></section>';
     }
 
+    if (todayDone || tp.kind === "review" || tp.kind === "off") {
+      var ms = missedDays();
+      if (ms.length) h += '<section class="card miss-card"><div class="row">' + ic("refresh", "big") + "<div><h3>Kaçırdığın dersler</h3><p>Bugünkü işini bitirdin. İstersen kaçırdığın bir günü şimdi telafi et; takvimde o gün tamamlanmış görünür.</p></div></div>" +
+        ms.slice(0, 3).map(function (m) { var t = TRK[m.tid]; return '<button class="mk-btn" data-mk="' + m.d + "|" + m.l.id + '" style="--c:' + t.color + '"><span><small>' + GUN[parse(m.d).getDay()] + ", " + fmt(m.d) + "</small><b>" + esc(t.short) + ": " + esc(m.l.title) + "</b></span>" + ic("play") + "</button>"; }).join("") +
+        (ms.length > 3 ? '<p class="muted small">+' + (ms.length - 3) + " gün daha</p>" : "") + "</section>";
+    }
     var f = focusTrack();
     if (f && f.s.behind > 0) {
       h += '<section class="card focus" style="--c:' + f.t.color + '"><div class="row">' + ic("compass", "big") + "<div><h3>Odak önerisi: " + esc(f.t.name) + "</h3><p>Bu alanda plana göre " + f.s.behind + " ders gerideysin" + (f.s.avg != null ? ", test ortalaman %" + Math.round(f.s.avg * 100) : "") + ". Cumartesi dersi otomatik olarak buraya gelir.</p></div></div></section>";
@@ -278,7 +296,7 @@
   function weekStrip() {
     var d = parse(TODAY), dow = (d.getDay() + 6) % 7, mon = addDays(TODAY, -dow), out = '<div class="week">';
     for (var i = 0; i < 7; i++) {
-      var ds = addDays(mon, i), p = planFor(ds), ss = sessionsOn(ds), st = ss.some(function (s) { return s.pass; }) ? "done" : ss.length ? "part" : (ds < TODAY && ds >= S.start && p !== "review" && p !== "off") ? "miss" : "";
+      var ds = addDays(mon, i), p = planFor(ds), ss = sessionsOn(ds), st = ss.some(function (s) { return s.pass; }) ? (madeUp(ds) ? "done mk" : "done") : ss.length ? "part" : (ds < TODAY && ds >= S.start && p !== "review" && p !== "off") ? "miss" : "";
       var col = TRK[p] ? TRK[p].color : "#8a8f98";
       out += '<div class="wd ' + st + (ds === TODAY ? " now" : "") + '" style="--c:' + col + '"><small>' + GUNK[parse(ds).getDay()] + '</small><span class="dot">' + (st === "done" ? ic("check") : ic(TRK[p] ? TRK[p].icon : p === "review" ? "refresh" : "compass")) + "</span><em>" + esc(TRK[p] ? TRK[p].short : planLabel(p)) + "</em></div>";
     }
@@ -330,7 +348,7 @@
     var cnt = { done: 0, part: 0, miss: 0 };
     for (var d = 1; d <= nd; d++) {
       var ds = iso(new Date(y, m, d)), p = planFor(ds), ss = sessionsOn(ds), st = "";
-      if (ss.some(function (s) { return s.pass; })) st = "done"; else if (ss.length) st = "part";
+      if (ss.some(function (s) { return s.pass; })) st = madeUp(ds) ? "done mk" : "done"; else if (ss.length) st = "part";
       else if (ds < TODAY && ds >= S.start && p !== "review" && p !== "off") st = "miss";
       else if (ds >= TODAY) st = "plan";
       if (cnt[st] != null) cnt[st]++;
@@ -353,7 +371,7 @@
     if (ds === S.target) h += '<p class="msd">' + ic("flag") + "Hedef tarih</p>";
     if (listenMin(ds)) h += '<p class="sd">' + ic("head") + " " + listenMin(ds) + " dk dinleme</p>";
     if (!ss.length && !listenMin(ds)) h += "<p>Bu gün kayıt yok.</p>";
-    ss.forEach(function (s) { var L = LES[s.lid]; h += '<p class="sd"><span style="color:' + (TRK[s.tr] ? TRK[s.tr].color : "#555") + '">●</span> ' + esc(L ? L.l.title : "Tekrar") + " · " + s.sc + "/" + s.tot + (s.pass ? " ✓" : " (tekrar gerekli)") + "</p>"; });
+    ss.forEach(function (s) { var L = LES[s.lid]; h += '<p class="sd"><span style="color:' + (TRK[s.tr] ? TRK[s.tr].color : "#555") + '">●</span> ' + esc(L ? L.l.title : "Tekrar") + (s.for ? " (telafi, " + fmt(s.date) + ")" : "") + " · " + s.sc + "/" + s.tot + (s.pass ? " ✓" : " (tekrar gerekli)") + "</p>"; });
     var el = document.getElementById("daydet"); if (el) el.innerHTML = h;
   }
 
@@ -493,7 +511,7 @@
 
   /* ---------- ders oynatıcı ---------- */
   var P = null;
-  function openLesson(lid) {
+  function openLesson(lid, forDate) {
     var L = LES[lid]; if (!L) return;
     var warm = dueList(lid).slice(0, 3);
     var seq = [], sl = L.l.slides;
@@ -501,7 +519,7 @@
     var lastC = genCheck(sl[sl.length - 1]); if (lastC) seq.push({ k: "c", q: lastC });
     shuffle(GM.satz.filter(function (x) { return x.l === lid; }).map(function (x) { return { k: "g", kind: "satz", it: x }; })
       .concat(GM.sql.filter(function (x) { return x.l === lid; }).map(function (x) { return { k: "g", kind: "sql", it: x }; }))).slice(0, 2).forEach(function (g) { seq.push(g); });
-    P = { kind: "lesson", lid: lid, tr: L.tr, l: L.l, seq: seq, phase: warm.length ? "warm" : "slides", warm: warm, wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(),
+    P = { kind: "lesson", forDate: forDate || null, lid: lid, tr: L.tr, l: L.l, seq: seq, phase: warm.length ? "warm" : "slides", warm: warm, wi: 0, i: 0, qi: 0, ans: {}, t0: Date.now(),
       qs: L.l.quiz.map(function (q, k) { return { q: q, id: lid + "#" + k }; }) };
     drawPlayer();
   }
@@ -597,7 +615,9 @@
     P.warm.forEach(function (x, k) { var a = P.ans["w" + k]; if (a && a.pts != null) srsUpdate(x.id, a.pts); });
     P.qs.forEach(function (x, k) { var a = P.ans["q" + k]; if (a && a.pts != null) srsUpdate(x.id, a.pts); });
     if (P.kind === "lesson") S.best[P.lid] = Math.max(S.best[P.lid] || 0, pct);
-    S.sessions.push({ date: TODAY, lid: P.lid, tr: P.kind === "lesson" ? P.tr : "review", sc: Math.round(lessonScore() * 10) / 10, tot: nQ, min: mins, pass: P.kind === "review" || pct >= PASS });
+    var rec = { date: TODAY, lid: P.lid, tr: P.kind === "lesson" ? P.tr : "review", sc: Math.round(lessonScore() * 10) / 10, tot: nQ, min: mins, pass: P.kind === "review" || pct >= PASS };
+    if (P.forDate) rec.for = P.forDate;
+    S.sessions.push(rec);
     var wasReview = P.kind === "review";
     save(); closePlayer(); toast(wasReview ? "Tekrar kaydedildi" : pct >= PASS ? "Ders tamamlandı" : "Kaydedildi; yarın yanlışlar tekrar gelecek");
   }
@@ -1110,12 +1130,13 @@
 
   /* ---------- olaylar ---------- */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read],[data-wa],[data-lm],[data-story],[data-sts]");
+    var b = e.target.closest("[data-go],[data-lesson],[data-act],[data-ans],[data-rate],[data-ep],[data-pc],[data-note],[data-sec],[data-nm],[data-bi],[data-game],[data-opp],[data-opu],[data-cwc],[data-cwl],[data-rk],[data-track],[data-cal],[data-day],[data-nf],[data-ps],[data-pe],[data-read],[data-wa],[data-lm],[data-story],[data-sts],[data-mk]");
     if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
     var d = b.dataset;
     if (d.read) { S.read[d.read] = TODAY; save(); return; }
     if (d.go) return go(d.go);
     if (d.lesson) return openLesson(d.lesson);
+    if (d.mk) { var mk = d.mk.split("|"); return openLesson(mk[1], mk[0]); }
     if (d.track) { view = "road"; render(); var t = document.getElementById("t-" + d.track); if (t) t.scrollIntoView({ behavior: "smooth" }); return; }
     if (d.cal) { var y = +calMonth.slice(0, 4), m = +calMonth.slice(5, 7) - 1 + (+d.cal); var nd = new Date(y, m, 1); calMonth = iso(nd).slice(0, 7); return render(); }
     if (d.day) return dayDetail(d.day);

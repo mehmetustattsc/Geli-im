@@ -30,6 +30,9 @@ Telefon için PWA (GitHub Pages). Arayüz dili Türkçe; Almanca ifadeler dersle
 - `js/stories.js` → `STORIES`: özgün B1 hikâyeler `[Almanca, Türkçe]` cümle çiftleri + kelime listesi. Dinle → Hikâyeler; telefonun Almanca sesiyle (speechSynthesis) cümle cümle okunur, hız 0,7/0,85/1, zamanlayıcı 15/30/45 dk (dolana kadar hikâyeler arka arkaya), karanlık ekran. Dinleme süresi `S.listen`'e eklenir.
 - Podcast'lerde `uyku` kategorisi ve mini oynatıcıda uyku zamanlayıcısı (15–60 dk).
 
+## Telafi
+- Bugünün dersi (ya da tekrar/dinlenme günü) bitince Bugün ekranında son 14 günün kaçırılan planlı günleri çıkar; telafi oturumu `for: tarih` ile kaydedilir, takvimde o gün çizgili "tamam" görünür. Bugünün tamamlanması yalnızca `for` olmayan oturumlarla sayılır.
+
 ## Öğrenme mantığı
 - Geçme eşiği %80. Her soru aralıklı tekrarla döner (`S.srs`, 1-3-7-21-60 gün); dersin başında en fazla 3 vadesi gelmiş soru ısınma olarak sorulur, Pazar tekrarında hepsi.
 - Yazılı sorular `WRITE_Q` (content.js sonunda): kullanıcı yazar, örnek cevap + anahtar kelimelerle karşılaştırıp kendini puanlar (1 / 0,5 / 0).

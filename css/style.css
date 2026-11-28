@@ -468,3 +468,8 @@ i.s{font-style:normal;color:#b5562b}b.k{color:#2f6fd8;font-weight:600}u.f{text-d
 #player.dark .btn,#player.dark .stbtn,#player.dark .pl-top button{background:#111;color:#555}
 #player.dark .rt-t{color:#444}
 .pl-top .stbtn{width:auto;height:auto;border-radius:10px;box-shadow:none;white-space:nowrap;display:block}
+.miss-card .ic.big{color:#b45309}
+.mk-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--c) 10%,var(--card));border-left:4px solid var(--c)}
+.mk-btn span{flex:1}.mk-btn small{display:block;color:var(--mut);font-size:12px}.mk-btn b{font-size:15px}.mk-btn .ic{color:var(--c)}
+.cd.done.mk{background:repeating-linear-gradient(135deg,var(--c),var(--c) 6px,color-mix(in srgb,var(--c) 75%,#fff) 6px,color-mix(in srgb,var(--c) 75%,#fff) 12px)}
+.wd.done.mk .dot{background:repeating-linear-gradient(135deg,var(--c),var(--c) 4px,color-mix(in srgb,var(--c) 70%,#fff) 4px,color-mix(in srgb,var(--c) 70%,#fff) 8px)}
